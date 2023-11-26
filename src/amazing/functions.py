@@ -4,7 +4,6 @@ import numpy as np
 columnNames = ['date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
 
 def constructTable(dataFilePath):
-    # returning two indexes, need to fix.
     table = pd.read_csv(dataFilePath)
     try:
         table.columns = columnNames

@@ -10,3 +10,4 @@ audioPath = os.path.join(currentDir, audioData)
 audioTable = f.constructTable(audioPath)
 
 print(audioTable)
+print(audioTable.columns)
