@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
 
 columnNames = ['id','date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
 
@@ -25,3 +27,19 @@ def constructTable(dataFilePath):
 
  
     return table
+
+def correlate(x,y):
+    corr, pVal = stats.pearsonr(x, y)
+    plt.scatter(x, y)
+    title = "corr = " + str(corr)
+    plt.title(title)
+    plt.xlabel('Average Heart Rate (bpm)')
+    plt.ylabel('Sleep Duration (hours)')
+
+    if(pVal < 0.05):
+        print("Statistically Significant.")
+    else:
+        print(pVal)
+
+    plt.show()
+

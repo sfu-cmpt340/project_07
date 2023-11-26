@@ -1,7 +1,6 @@
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
-from scipy import stats
+
 from amazing import functions as f
 
 currentDir = os.getcwd()
@@ -20,12 +19,8 @@ for hrRange in audioTable['heartrate'].values:
 # correlation between sleep duration & heart rate
 x = avgHeartRates
 y = audioTable['sleepDuration'].values
-corr, pVal = stats.pearsonr(x, y)
-plt.scatter(x, y)
-title = "corr = " + str(corr)
-plt.title(title)
 
-plt.show()
+f.correlate(x,y)
 
 
 # for i in range(len(audioTable['id'].values)):
