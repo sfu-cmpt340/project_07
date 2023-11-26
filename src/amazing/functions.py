@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-columnNames = ['date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
+columnNames = ['id','date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
 
 def constructTable(dataFilePath):
     table = pd.read_csv(dataFilePath)
@@ -23,5 +23,5 @@ def constructTable(dataFilePath):
     except:
         print("Error creating table - make sure columns in csv are same as above.")
 
-        
+ 
     return table
