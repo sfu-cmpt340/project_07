@@ -1,0 +1,4 @@
+tensorflow==2.15.0
+opencv-python==4.8.1.78
+audiofile==1.3.0
+sounddevice==0.4.6
