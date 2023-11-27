@@ -22,9 +22,9 @@ def constructTable(dataFilePath):
             'sleepDuration': float
         })
     
-    except:
+    except Exception as error:
+        print('error:', error)   
         print("Error creating table - make sure columns in csv are same as above.")
-
  
     return table
 
