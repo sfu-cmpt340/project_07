@@ -1,19 +1,12 @@
-# SFU CMPT 340 Project Template -- Replace with project title
-This repository is a template for your CMPT 340 course project.
-Replace the title with your project title, and **add a snappy acronym that people remember (mnemonic)**.
+# Diagnosis and Translation Between Video And Audio Recordings of Heart rate
+# VAHR
 
 Add a 1-2 line summary of your project here.
 
 ## Important Links
 
-| [Timesheet](https://google.com) | [Slack channel](https://google.com) | [Project report](https://google.com) |
+| [Timesheet](https://1sfu-my.sharepoint.com/:x:/g/personal/kabhishe_sfu_ca/Ee20R0_sK8NKodZikXyvJd8BpL5t7OL5Ass7mfhtdIsgWQ?e=IIMpdv) | [Slack channel](https://sfucmpt340fall2023.slack.com/archives/C05TBCRL7GV) | [Project report](https://www.overleaf.com/project/655aafa73f9551bd78d95b11) |
 |-----------|---------------|-------------------------|
-
-
-- Timesheet: Link your timesheet (pinned in your project's Slack channel) where you track per student the time and tasks completed/participated for this project/
-- Slack channel: Link your private Slack project channel.
-- Project report: Link your Overleaf project report document.
-
 
 ## Video/demo/GIF
 Record a short video (1:40 - 2 minutes maximum) or gif or a simple screen recording or even using PowerPoint with audio or with text, showcasing your work.
@@ -57,15 +50,15 @@ repository
 <a name="installation"></a>
 
 ## 2. Installation
+Python 3.11
 
-Provide sufficient instructions to reproduce and install your project. 
-Provide _exact_ versions, test on CSIL or reference workstations.
+You might need to change some constant variables such as VIDEO_PATH to run the code successfully.
 
 ```bash
 git clone $THISREPO
 cd $THISREPO
-conda env create -f requirements.yml
-conda activate amazing
+pip install -r .\requirements.txt
+python src/run.py
 ```
 
 <a name="repro"></a>

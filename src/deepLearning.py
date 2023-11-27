@@ -16,18 +16,22 @@ def getVideoAvgBrightnesses(videoPath, numFrames):
     while (count < numFrames):
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_img = cv2.resize(gray_img,(100,100))
-        avg_brightnesses.append(np.average(gray_img));
+        avg_brightnesses.append(np.average(gray_img))
         success, img = vid_source.read() 
         count+=1
     return avg_brightnesses
 
 training_data = []
 
+# Set your personal data path here:
+VIDEO_PATH = ""
+AUDIO_PATH = ""
+
 # Process Video
 for i in range(1,5):
-    avg_brightnesses = getVideoAvgBrightnesses("C:\\Users\\parsa\\OneDrive\\Desktop\\cmpt_340_project\\Dataset\\Video\\"+ str(i) + ".mov",250)
+    avg_brightnesses = getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4",250)
     # get audio signal 
-    audio_signal, sampling_rate = audiofile.read("C:\\Users\\parsa\\OneDrive\\Desktop\\cmpt_340_project\\Dataset\\Audio\\"+ str(i) + ".wav")
+    audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
     # add pair to training data
     training_data.append([avg_brightnesses,audio_signal[0][:420000]])
 
