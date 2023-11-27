@@ -23,7 +23,7 @@ def getVideoAvgBrightnesses(videoPath):
     while (count < numFrames and success):
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_img = cv2.resize(gray_img,(100,100))
-        avg_brightnesses.append(np.average(gray_img));
+        avg_brightnesses.append(np.average(gray_img))
         success, img = vid_source.read() 
         count+=iterator
     return avg_brightnesses
@@ -31,6 +31,7 @@ def getVideoAvgBrightnesses(videoPath):
 training_data = []
 
 # Set your personal data path here:
+
 VIDEO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
 AUDIO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
 
