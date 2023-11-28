@@ -32,76 +32,72 @@ f.correlate(x,y)
 # for i in range(len(audioTable['id'].values)):
 
 ## Grabbing BPM from video
-# Help: https://stackoverflow.com/questions/34516323/heart-rate-monitor-using-opencv
-print("Taking BPM from video...")
-avg_brightness, fps = f.getVideoAvgBrightnesses("C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/1.mp4")
-lowcut = 0.5
-highcut = 2.5
+# Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
+# Set your personal data path here:
+VIDEO_PATH = "C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
+AUDIO_PATH = "C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/audio/Filtered_audio/" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+for i in range(1,50):
+    print("__________Taking BPM from video ", i, "_______________")
+    avg_brightness, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+    lowcut = 0.5
+    highcut = 2.5
 
-# Apply band-pass filter to average brightness values
-# it makes the resulting heart rate signal smoother
-filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
-print("Plotting the detected signal from video...")
-# Finding peaks
-peaks, _ = find_peaks(filtered_brightness, height=0)
-print(peaks)
+    # Apply band-pass filter to average brightness values
+    # it makes the resulting heart rate signal smoother
+    filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
+    print("Plotting the detected signal from video...")
+    # Finding peaks
+    peaks, _ = find_peaks(filtered_brightness, height=0)
+    print(peaks)
+    # Plotting for easier debugging
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(avg_brightness, label='Original Signal')
+    # plt.plot(filtered_brightness, label='Filtered Signal')
+    # plt.title('Average Brightness with Band-pass Filtering')
+    # plt.xlabel('Frame')
+    # plt.ylabel('Average Brightness')
+    # plt.legend()
+    # plt.plot(peaks, filtered_brightness[peaks], "x")
+    # plt.show()
 
-plt.figure(figsize=(10, 6))
-plt.plot(avg_brightness, label='Original Signal')
-plt.plot(filtered_brightness, label='Filtered Signal')
-plt.title('Average Brightness with Band-pass Filtering')
-plt.xlabel('Frame')
-plt.ylabel('Average Brightness')
-plt.legend()
-plt.plot(peaks, filtered_brightness[peaks], "x")
-plt.show()
+    video_length = f.getVideoLengthSeconds(VIDEO_PATH + str(i) + ".mp4")
+    peak_times = peaks / fps
+    print("Heartbeat peak times: ", peak_times)
+    avg_bpm = (len(peaks) / video_length) * 60
+    print("Overall average BPM without sliding window: ", avg_bpm)
 
-video_length = f.getVideoLengthSeconds("C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/1.mp4")
-peak_times = peaks / fps
-print("Heartbeat peak times: ", peak_times)
+    # define a sliding window and step size (seconds)
+    WINDOW_SIZE = 6
+    STEP_SIZE = 0.5
 
-avg_bpm = (len(peaks) / video_length) * 60
-print("Overall average BPM without sliding window: ", avg_bpm)
+    num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
+    window_starts = np.zeros(num_windows)
+    avg_bpm_in_windows = np.zeros(num_windows)
+    window_peaks = []
 
-# define a sliding window and step size (seconds)
-WINDOW_SIZE = 6
-STEP_SIZE = 0.5
+    for i in range(num_windows):
+        window_start = peak_times[0] + i * STEP_SIZE
+        window_end = window_start + WINDOW_SIZE
 
-num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
+        if window_end > peak_times[-1]:
+            break
 
-window_starts = np.zeros(num_windows)
-avg_bpm_in_windows = np.zeros(num_windows)
-window_peaks = []
+        # Find indices of peaks within the current window
+        peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
+        window_peaks.append(peak_times[peaks_in_window])
+        window_starts[i] = window_start
 
-for i in range(num_windows):
-    window_start = peak_times[0] + i * STEP_SIZE
-    window_end = window_start + WINDOW_SIZE
+    window_bpms = []
+    for window in window_peaks:
+        # number of heartbeats / window time = bps
+        window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
 
-    if window_end > peak_times[-1]:
-        break
-
-    # Find indices of peaks within the current window
-    peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
-
-    window_peaks.append(peak_times[peaks_in_window])
-
-    window_starts[i] = window_start
-
-window_bpms = []
-for window in window_peaks:
-    # number of heartbeats / window time = bps
-    window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
-
-print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
-print("Windowed bpms average: ", np.average(window_bpms))
+    print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
+    print("Windowed bpms average: ", np.average(window_bpms))
 
 # ## DL Model training code here
 # print("DL Model Training...")
 # training_data = []
-
-# # Set your personal data path here:
-# VIDEO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
-# AUDIO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
 
 # # Process Video
 # for i in range(1,50):
