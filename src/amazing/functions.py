@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 
 columnNames = ['id','date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
 
@@ -43,3 +46,23 @@ def correlate(x,y):
 
     plt.show()
 
+def getVideoAvgBrightnesses(videoPath):
+    vid_source = cv2.VideoCapture(videoPath)
+    if vid_source.get(cv2.CAP_PROP_FPS) > 40:
+        iterator=2
+        numFrames=500
+    else:
+        iterator=1
+        numFrames=250
+    
+    avg_brightnesses = []
+    # Get average brightness value of each frame
+    success, img = vid_source.read()
+    count = 0
+    while (count < numFrames and success):
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray_img = cv2.resize(gray_img,(100,100))
+        avg_brightnesses.append(np.average(gray_img))
+        success, img = vid_source.read() 
+        count+=iterator
+    return avg_brightnesses
