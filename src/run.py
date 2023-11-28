@@ -56,12 +56,44 @@ plt.legend()
 plt.plot(peaks, filtered_brightness[peaks], "x")
 plt.show()
 
-peak_times = peaks / 24
+video_length = f.getVideoLengthSeconds("C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/1.mp4")
+peak_times = peaks / fps
 print("Heartbeat peak times: ", peak_times)
 
-bpm = (len(peaks) / f.getVideoLengthSeconds("C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/1.mp4")) * 60
-print("Overall average BPM without sliding window: ", bpm)
+avg_bpm = (len(peaks) / video_length) * 60
+print("Overall average BPM without sliding window: ", avg_bpm)
 
+# define a sliding window and step size (seconds)
+WINDOW_SIZE = 6
+STEP_SIZE = 0.5
+
+num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
+
+window_starts = np.zeros(num_windows)
+avg_bpm_in_windows = np.zeros(num_windows)
+window_peaks = []
+
+for i in range(num_windows):
+    window_start = peak_times[0] + i * STEP_SIZE
+    window_end = window_start + WINDOW_SIZE
+
+    if window_end > peak_times[-1]:
+        break
+
+    # Find indices of peaks within the current window
+    peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
+
+    window_peaks.append(peak_times[peaks_in_window])
+
+    window_starts[i] = window_start
+
+window_bpms = []
+for window in window_peaks:
+    # number of heartbeats / window time = bps
+    window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
+
+print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
+print("Windowed bpms average: ", np.average(window_bpms))
 
 # ## DL Model training code here
 # print("DL Model Training...")
