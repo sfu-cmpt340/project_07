@@ -95,59 +95,59 @@ for i in range(1,50):
     print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
     print("Windowed bpms average: ", np.average(window_bpms))
 
-# ## DL Model training code here
-# print("DL Model Training...")
-# training_data = []
+## DL Model training code here
+print("DL Model Training...")
+training_data = []
 
-# # Process Video
-# for i in range(1,50):
-#     avg_brightnesses = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
-#     # get audio signal 
-#     audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
-#     # add pair to training data
-#     training_data.append([avg_brightnesses,audio_signal[0][:300000]])
+# Process Video
+for i in range(1,50):
+    avg_brightnesses = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+    # get audio signal 
+    audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
+    # add pair to training data
+    training_data.append([avg_brightnesses,audio_signal[0][:300000]])
 
-# X = []
-# Y = []
+X = []
+Y = []
 
-# for video,audio in training_data:
-#     X.append(video)
-#     Y.append(audio)
+for video,audio in training_data:
+    X.append(video)
+    Y.append(audio)
 
-# X = np.array(X)
-# Y = np.array(Y)
+X = np.array(X)
+Y = np.array(Y)
 
-# training_size=45
+training_size=45
 
-# x_train = X[:training_size]
-# y_train = Y[:training_size]
-# x_test = X[training_size:]
-# y_test = Y[training_size:]
+x_train = X[:training_size]
+y_train = Y[:training_size]
+x_test = X[training_size:]
+y_test = Y[training_size:]
 
-# model = tf.keras.models.Sequential()
+model = tf.keras.models.Sequential()
 
-# model.add(tf.keras.layers.Flatten(input_shape=(250,)))
-# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-# model.add(tf.keras.layers.Dense(300000))
+model.add(tf.keras.layers.Flatten(input_shape=(250,)))
+model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
+model.add(tf.keras.layers.Dense(300000))
 
-# model.compile(optimizer = 'adam', loss = 'mse') 
+model.compile(optimizer = 'adam', loss = 'mse') 
 
-# model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
-# model.save('heart_rate.model')
+model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
+model.save('heart_rate.model')
 
-# # try predicting
-# print("DL Model Prediction Testing...")
-# new_model = tf.keras.models.load_model('heart_rate.model')
-# x_test = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
-# predictions = new_model.predict([x_test])
-# print(predictions[0])
+# try predicting
+print("DL Model Prediction Testing...")
+new_model = tf.keras.models.load_model('heart_rate.model')
+x_test = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
+predictions = new_model.predict([x_test])
+print(predictions[0])
 
-# # Write output signal to file
-# with open("output.txt", "w") as txt_file:
-#     for line in predictions[0]:
-#         txt_file.write(str(line)+'\n')
+# Write output signal to file
+with open("output.txt", "w") as txt_file:
+    for line in predictions[0]:
+        txt_file.write(str(line)+'\n')
 
-# # Play sound - WARNING may be very loud
-# sd.play(predictions[0],44100)
-# sd.wait()
+# Play sound - WARNING may be very loud
+sd.play(predictions[0],44100)
+sd.wait()
