@@ -34,8 +34,8 @@ print("DL Model Training...")
 training_data = []
 
 # Set your personal data path here:
-VIDEO_PATH = "C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
-AUDIO_PATH = "C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/audio/Filtered_audio/" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+VIDEO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
+AUDIO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
 
 # Process Video
 for i in range(1,50):
