@@ -8,6 +8,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
+from scipy.fft import fft, ifft
 
 print("Reading data csv...")
 currentDir = os.getcwd()
@@ -41,6 +42,10 @@ highcut = 2.5
 # it makes the resulting heart rate signal smoother
 filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
 print("Plotting the detected signal from video...")
+# Finding peaks
+peaks, _ = find_peaks(filtered_brightness, height=0)
+print(peaks)
+
 plt.figure(figsize=(10, 6))
 plt.plot(avg_brightness, label='Original Signal')
 plt.plot(filtered_brightness, label='Filtered Signal')
@@ -48,7 +53,15 @@ plt.title('Average Brightness with Band-pass Filtering')
 plt.xlabel('Frame')
 plt.ylabel('Average Brightness')
 plt.legend()
+plt.plot(peaks, filtered_brightness[peaks], "x")
 plt.show()
+
+peak_times = peaks / 24
+print("Heartbeat peak times: ", peak_times)
+
+bpm = (len(peaks) / f.getVideoLengthSeconds("C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/1.mp4")) * 60
+print("Overall average BPM without sliding window: ", bpm)
+
 
 # ## DL Model training code here
 # print("DL Model Training...")

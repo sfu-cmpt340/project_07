@@ -76,3 +76,9 @@ def getBandpassFilter(data, lowcut, highcut, fs, order=4):
     b, a = butter(order, [low, high], btype='band')
     y = filtfilt(b, a, data)
     return y
+
+def getVideoLengthSeconds(videoPath):
+    vid_source = cv2.VideoCapture(videoPath)
+    fps = vid_source.get(cv2.CAP_PROP_FPS)
+    frame_count = int(vid_source.get(cv2.CAP_PROP_FRAME_COUNT))
+    return frame_count / fps
