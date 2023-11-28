@@ -5,6 +5,9 @@ from amazing import functions as f
 import tensorflow as tf
 import sounddevice as sd
 import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
 
 print("Reading data csv...")
 currentDir = os.getcwd()
@@ -25,67 +28,85 @@ x = avgHeartRates
 y = audioTable['sleepDuration'].values
 
 f.correlate(x,y)
-
-
 # for i in range(len(audioTable['id'].values)):
 
-## DL Model training code here
-print("DL Model Training...")
-training_data = []
+## Grabbing BPM from video
+# Help: https://stackoverflow.com/questions/34516323/heart-rate-monitor-using-opencv
+print("Taking BPM from video...")
+avg_brightness, fps = f.getVideoAvgBrightnesses("C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/1.mp4")
+lowcut = 0.5
+highcut = 2.5
 
-# Set your personal data path here:
-VIDEO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
-AUDIO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+# Apply band-pass filter to average brightness values
+# it makes the resulting heart rate signal smoother
+filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
+print("Plotting the detected signal from video...")
+plt.figure(figsize=(10, 6))
+plt.plot(avg_brightness, label='Original Signal')
+plt.plot(filtered_brightness, label='Filtered Signal')
+plt.title('Average Brightness with Band-pass Filtering')
+plt.xlabel('Frame')
+plt.ylabel('Average Brightness')
+plt.legend()
+plt.show()
 
-# Process Video
-for i in range(1,50):
-    avg_brightnesses = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
-    # get audio signal 
-    audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
-    # add pair to training data
-    training_data.append([avg_brightnesses,audio_signal[0][:300000]])
+# ## DL Model training code here
+# print("DL Model Training...")
+# training_data = []
 
-X = []
-Y = []
+# # Set your personal data path here:
+# VIDEO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
+# AUDIO_PATH = "" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
 
-for video,audio in training_data:
-    X.append(video)
-    Y.append(audio)
+# # Process Video
+# for i in range(1,50):
+#     avg_brightnesses = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+#     # get audio signal 
+#     audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
+#     # add pair to training data
+#     training_data.append([avg_brightnesses,audio_signal[0][:300000]])
 
-X = np.array(X)
-Y = np.array(Y)
+# X = []
+# Y = []
 
-training_size=45
+# for video,audio in training_data:
+#     X.append(video)
+#     Y.append(audio)
 
-x_train = X[:training_size]
-y_train = Y[:training_size]
-x_test = X[training_size:]
-y_test = Y[training_size:]
+# X = np.array(X)
+# Y = np.array(Y)
 
-model = tf.keras.models.Sequential()
+# training_size=45
 
-model.add(tf.keras.layers.Flatten(input_shape=(250,)))
-model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-model.add(tf.keras.layers.Dense(300000))
+# x_train = X[:training_size]
+# y_train = Y[:training_size]
+# x_test = X[training_size:]
+# y_test = Y[training_size:]
 
-model.compile(optimizer = 'adam', loss = 'mse') 
+# model = tf.keras.models.Sequential()
 
-model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
-model.save('heart_rate.model')
+# model.add(tf.keras.layers.Flatten(input_shape=(250,)))
+# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
+# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
+# model.add(tf.keras.layers.Dense(300000))
 
-# try predicting
-print("DL Model Prediction Testing...")
-new_model = tf.keras.models.load_model('heart_rate.model')
-x_test = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
-predictions = new_model.predict([x_test])
-print(predictions[0])
+# model.compile(optimizer = 'adam', loss = 'mse') 
 
-# Write output signal to file
-with open("output.txt", "w") as txt_file:
-    for line in predictions[0]:
-        txt_file.write(str(line)+'\n')
+# model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
+# model.save('heart_rate.model')
 
-# Play sound - WARNING may be very loud
-sd.play(predictions[0],44100)
-sd.wait()
+# # try predicting
+# print("DL Model Prediction Testing...")
+# new_model = tf.keras.models.load_model('heart_rate.model')
+# x_test = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
+# predictions = new_model.predict([x_test])
+# print(predictions[0])
+
+# # Write output signal to file
+# with open("output.txt", "w") as txt_file:
+#     for line in predictions[0]:
+#         txt_file.write(str(line)+'\n')
+
+# # Play sound - WARNING may be very loud
+# sd.play(predictions[0],44100)
+# sd.wait()

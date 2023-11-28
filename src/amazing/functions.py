@@ -5,6 +5,7 @@ from scipy import stats
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
 
 columnNames = ['id','date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
 
@@ -65,4 +66,13 @@ def getVideoAvgBrightnesses(videoPath):
         avg_brightnesses.append(np.average(gray_img))
         success, img = vid_source.read() 
         count+=iterator
-    return avg_brightnesses
+    return avg_brightnesses, vid_source.get(cv2.CAP_PROP_FPS)
+
+# Order: bandwidth of the frequency range that the filter passes
+def getBandpassFilter(data, lowcut, highcut, fs, order=4):
+    nyquist = 0.5 * fs
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    b, a = butter(order, [low, high], btype='band')
+    y = filtfilt(b, a, data)
+    return y
