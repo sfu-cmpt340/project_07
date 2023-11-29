@@ -15,7 +15,7 @@ def constructTable(dataFilePath):
         table.columns = columnNames
         table = table.astype({
             'id': int,
-            'date': 'datetime64',
+            'date': str,
             'subjectID': int,
             'heartrate': str,
             'state': str,
