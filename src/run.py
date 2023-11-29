@@ -89,3 +89,11 @@ with open("output.txt", "w") as txt_file:
 # Play sound - WARNING may be very loud
 sd.play(predictions[0],44100)
 sd.wait()
+
+bpms = []
+
+for filename in os.listdir(AUDIO_PATH):
+    if filename.endswith(".wav"):
+        file_path = os.path.join(AUDIO_PATH, filename)
+        bpm = f.getAudioBPM2(file_path)
+        bpms.append((filename, bpm))
