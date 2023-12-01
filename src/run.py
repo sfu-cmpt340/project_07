@@ -34,8 +34,8 @@ f.correlate(x,y)
 ## Grabbing BPM from video
 # Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
 # Set your personal data path here:
-VIDEO_PATH = "C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/video/Video/" #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
-AUDIO_PATH = "C:/Users/carme/OneDrive/Desktop/CMPT340/Final Project/audio/Filtered_audio/" #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+VIDEO_PATH = os.path.join(os.getcwd() + "/Video/") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
+AUDIO_PATH = os.path.join(os.getcwd() + "/Audio/") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
 for i in range(1,50):
     print("__________Taking BPM from video ", i, "_______________")
     avg_brightness, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
@@ -61,13 +61,15 @@ for i in range(1,50):
     # plt.show()
 
     video_length = f.getVideoLengthSeconds(VIDEO_PATH + str(i) + ".mp4")
+    if (fps > 40):
+        fps /= 2
     peak_times = peaks / fps
     print("Heartbeat peak times: ", peak_times)
     avg_bpm = (len(peaks) / video_length) * 60
     print("Overall average BPM without sliding window: ", avg_bpm)
 
     # define a sliding window and step size (seconds)
-    WINDOW_SIZE = 6
+    WINDOW_SIZE = 5
     STEP_SIZE = 0.5
 
     num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
@@ -101,7 +103,7 @@ training_data = []
 
 # Process Video
 for i in range(1,50):
-    avg_brightnesses = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+    avg_brightnesses, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
     # get audio signal 
     audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
     # add pair to training data
@@ -139,7 +141,7 @@ model.save('heart_rate.model')
 # try predicting
 print("DL Model Prediction Testing...")
 new_model = tf.keras.models.load_model('heart_rate.model')
-x_test = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
+x_test, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
 predictions = new_model.predict([x_test])
 print(predictions[0])
 
