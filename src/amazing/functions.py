@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt
 
-columnNames = ['id','date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
+columnNames = ['id','date','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
 
 def constructTable(dataFilePath):
     table = pd.read_csv(dataFilePath)
@@ -16,7 +16,6 @@ def constructTable(dataFilePath):
         table = table.astype({
             'id': int,
             'date': 'datetime64[ns]',
-            'subjectID': int,
             'heartrate': str,
             'state': str,
             'activity': str,

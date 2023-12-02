@@ -11,25 +11,15 @@ from scipy.signal import find_peaks
 from scipy.fft import fft, ifft
 
 print("Reading data csv...")
-currentDir = os.getcwd()
-audioData = "audio.csv"
-audioPath = os.path.join(currentDir, audioData)
+video_data_path = os.path.join(os.getcwd(), "video.csv")
+data_table = f.constructTable(video_data_path) # overall table from csv
 
-audioTable = f.constructTable(audioPath)
+x = data_table[['id','heartrate']] # one table for id and heartrate
+y = data_table.drop('heartrate', axis=1) # another excluding heartrate
 
-avgHeartRates = []
-for hrRange in audioTable['heartrate'].values:
-    bounds = hrRange.split("-")
-    
-    avgHeartRates.append((int(bounds[0]) + int(bounds[1]))/2)
-
-
-# correlation between sleep duration & heart rate
-x = avgHeartRates
-y = audioTable['sleepDuration'].values
-
-f.correlate(x,y)
-# for i in range(len(audioTable['id'].values)):
+#printing tables
+print("-----X-----\n",x.head())
+print("-----Y-----\n",y.head())
 
 ## Grabbing BPM from video
 # Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
