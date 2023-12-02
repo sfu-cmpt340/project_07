@@ -61,7 +61,7 @@ def getVideoAvgBrightnesses(videoPath):
     count = 0
     while (count < numFrames and success):
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        gray_img = cv2.resize(gray_img,(100,100))
+        gray_img = cv2.resize(gray_img,(500,500))
         avg_brightnesses.append(np.average(gray_img))
         success, img = vid_source.read() 
         count+=iterator
