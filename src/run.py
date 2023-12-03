@@ -9,6 +9,12 @@ import cv2
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.fft import fft, ifft
+import seaborn as sn
+from sklearn.preprocessing import LabelEncoder
+from sklearn import model_selection
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, roc_auc_score
+import PySimpleGUI as sg
 
 print("Reading data csv...")
 video_data_path = os.path.join(os.getcwd(), "video.csv")
@@ -17,15 +23,16 @@ data_table = f.constructTable(video_data_path) # overall table from csv
 x = data_table[['id','heartrate']] # one table for id and heartrate
 y = data_table.drop('heartrate', axis=1) # another excluding heartrate
 
-#printing tables
+# printing tables
 print("-----X-----\n",x.head())
 print("-----Y-----\n",y.head())
 
-## Grabbing BPM from video
+## Grabbing BPM from video -----------------------------------------------------------------------------------
 # Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
 # Set your personal data path here:
-VIDEO_PATH = os.path.join(os.getcwd() + "/Video/") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
-AUDIO_PATH = os.path.join(os.getcwd() + "/Audio/") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
+AUDIO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Audio\\") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+print (VIDEO_PATH)
 for i in range(1,50):
     print("__________Taking BPM from video ", i, "_______________")
     avg_brightness, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
@@ -87,59 +94,123 @@ for i in range(1,50):
     print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
     print("Windowed bpms average: ", np.average(window_bpms))
 
-## DL Model training code here
-print("DL Model Training...")
-training_data = []
+## Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
+# Cite: https://www.kaggle.com/code/durgancegaur/a-guide-to-any-classification-problem
+df = pd.read_csv(os.getcwd()+"\\video.csv")
+df = df.drop(['ID', 'DATE'], axis=1)
+df = df.set_axis(['RATE', 'STATE', 'ACTIVITY', 'BMI', 'AGE', 'CAFFEINE INTAKE', 'SLEEP DURATION'], axis=1)
 
-# Process Video
-for i in range(1,50):
-    avg_brightnesses, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
-    # get audio signal 
-    audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
-    # add pair to training data
-    training_data.append([avg_brightnesses,audio_signal[0][:300000]])
+# Correlation matrix
+print("__________Correlation Matrix_______________")
+print(df.corr())
 
-X = []
-Y = []
+# Correlation matrix in Heatmap
+sn.heatmap(df.corr())
+plt.title("Correlation Matrix (Heatmap)")
+plt.show()
 
-for video,audio in training_data:
-    X.append(video)
-    Y.append(audio)
+# Defining ranges for classification
+bins = [0, 60, 70, 80, 90, 100, 120, 140, 160]
+labels = ['Very Low (0-60)', 'Low (60 - 70)', 'Medium Low (70-80)', 'Medium (80-90)', 'Medium High (90-100)', 'High (100-120)', 'Very High (120-140)', 'Extremely High (140-160)']
+df['RATE CATEGORY'] = pd.cut(df['RATE'], bins=bins, labels=labels, right=False)
+# df.head(100)
 
-X = np.array(X)
-Y = np.array(Y)
+# Change categorical variables into 0/1
+target="RATE CATEGORY"
+df_tree = df.apply(LabelEncoder().fit_transform)
+feature_col_tree=df_tree.columns.to_list()
+feature_col_tree.remove(target)
+feature_col_tree.remove("RATE")
 
-training_size=45
+# feature_col_tree.head()
+categorical_columns = ['STATE', 'ACTIVITY', 'CAFFEINE INTAKE']
+df_nontree=pd.get_dummies(df,columns=categorical_columns,drop_first=False)
+y=df_nontree[target].values
+df_nontree.drop("RATE",axis=1,inplace=True)
+df_nontree=pd.concat([df_nontree,df[target]],axis=1)
+df_nontree.head()
 
-x_train = X[:training_size]
-y_train = Y[:training_size]
-x_test = X[training_size:]
-y_test = Y[training_size:]
+# Classifier method: Random forest
+acc_RandF=[]
+kf=model_selection.StratifiedKFold(n_splits=2) # test with different n_splits
+for fold , (trn_,val_) in enumerate(kf.split(X=df_tree,y=y)):
+    
+    X_train=df_tree.loc[trn_,feature_col_tree]
+    y_train=df_tree.loc[trn_,target]
+    
+    X_valid=df_tree.loc[val_,feature_col_tree]
+    y_valid=df_tree.loc[val_,target]
+    
+    clf=RandomForestClassifier(n_estimators=200,criterion="entropy")
+    clf.fit(X_train,y_train)
+    y_pred=clf.predict(X_valid)
 
-model = tf.keras.models.Sequential()
+# Checking Feature importance 
+plt.figure(figsize=(10,6))
+importance = clf.feature_importances_
+idxs = np.argsort(importance)
+plt.title("Feature Importance")
+plt.barh(range(len(idxs)),importance[idxs],align="center")
+plt.yticks(range(len(idxs)),[feature_col_tree[i] for i in idxs])
+plt.xlabel("Random Forest Feature Importance")
+plt.show()
 
-model.add(tf.keras.layers.Flatten(input_shape=(250,)))
-model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-model.add(tf.keras.layers.Dense(300000))
+# Display GUI
+f.getMainSelectionPage(clf)
 
-model.compile(optimizer = 'adam', loss = 'mse') 
+## DL Video -> Audio Prediction Model training code here -----------------------------------------------------------------------------------
+# print("DL Model Training...")
+# training_data = []
 
-model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
-model.save('heart_rate.model')
+# # Process Video
+# for i in range(1,50):
+#     avg_brightnesses, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+#     # get audio signal 
+#     audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
+#     # add pair to training data
+#     training_data.append([avg_brightnesses,audio_signal[0][:300000]])
 
-# try predicting
-print("DL Model Prediction Testing...")
-new_model = tf.keras.models.load_model('heart_rate.model')
-x_test, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
-predictions = new_model.predict([x_test])
-print(predictions[0])
+# X = []
+# Y = []
 
-# Write output signal to file
-with open("output.txt", "w") as txt_file:
-    for line in predictions[0]:
-        txt_file.write(str(line)+'\n')
+# for video,audio in training_data:
+#     X.append(video)
+#     Y.append(audio)
 
-# Play sound - WARNING may be very loud
-sd.play(predictions[0],44100)
-sd.wait()
+# X = np.array(X)
+# Y = np.array(Y)
+
+# training_size=45
+
+# x_train = X[:training_size]
+# y_train = Y[:training_size]
+# x_test = X[training_size:]
+# y_test = Y[training_size:]
+
+# model = tf.keras.models.Sequential()
+
+# model.add(tf.keras.layers.Flatten(input_shape=(250,)))
+# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
+# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
+# model.add(tf.keras.layers.Dense(300000))
+
+# model.compile(optimizer = 'adam', loss = 'mse') 
+
+# model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
+# model.save('heart_rate.model')
+
+# # try predicting
+# print("DL Model Prediction Testing...")
+# new_model = tf.keras.models.load_model('heart_rate.model')
+# x_test, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
+# predictions = new_model.predict([x_test])
+# print(predictions[0])
+
+# # Write output signal to file
+# with open("output.txt", "w") as txt_file:
+#     for line in predictions[0]:
+#         txt_file.write(str(line)+'\n')
+
+# # Play sound - WARNING may be very loud
+# sd.play(predictions[0],44100)
+# sd.wait()

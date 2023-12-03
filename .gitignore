@@ -2,6 +2,9 @@
 *.model
 output.txt
 
+# Data
+src/TrainingData
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
