@@ -46,7 +46,7 @@ for i in range(1,50):
     # Finding peaks
     peaks, _ = find_peaks(filtered_brightness, height=0)
     print(peaks)
-    # Plotting for easier debugging
+    ## Plotting for easier debugging
     # plt.figure(figsize=(10, 6))
     # plt.plot(avg_brightness, label='Original Signal')
     # plt.plot(filtered_brightness, label='Filtered Signal')
@@ -98,7 +98,7 @@ for i in range(1,50):
 # Cite: https://www.kaggle.com/code/durgancegaur/a-guide-to-any-classification-problem
 df = pd.read_csv(os.getcwd()+"\\video.csv")
 df = df.drop(['ID', 'DATE'], axis=1)
-df = df.set_axis(['RATE', 'STATE', 'ACTIVITY', 'BMI', 'AGE', 'CAFFEINE INTAKE', 'SLEEP DURATION'], axis=1)
+df = df.set_axis(['RATE', 'STATE', 'ACTIVITY', 'BMI', 'AGE', 'CAFFEINE INTAKE', 'SLEEP DURATION', 'GENDER', 'FITNESS LEVEL'], axis=1)
 
 # Correlation matrix
 print("__________Correlation Matrix_______________")
@@ -123,7 +123,7 @@ feature_col_tree.remove(target)
 feature_col_tree.remove("RATE")
 
 # feature_col_tree.head()
-categorical_columns = ['STATE', 'ACTIVITY', 'CAFFEINE INTAKE']
+categorical_columns = ['STATE', 'ACTIVITY', 'CAFFEINE INTAKE', 'GENDER', 'FITNESS LEVEL']
 df_nontree=pd.get_dummies(df,columns=categorical_columns,drop_first=False)
 y=df_nontree[target].values
 df_nontree.drop("RATE",axis=1,inplace=True)
