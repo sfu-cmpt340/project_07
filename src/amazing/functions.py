@@ -106,6 +106,10 @@ def getMainSelectionPage(classifier):
             window.close()
             getHrPredictionPage(classifier)
 
+        if event == 'Predict Heart rate from a video':
+            window.close()
+            getVideoPredictionPage(classifier)
+
     window.close()
 
 def getHrPredictionPage(classifier):
@@ -130,6 +134,7 @@ def getHrPredictionPage(classifier):
             break
 
         if event == 'Return':
+            window.close()
             getMainSelectionPage(classifier)
 
         if event == 'Predict My Current Heart Rate Range!':
@@ -205,6 +210,53 @@ def getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, s
         if event == 'Redo':
             window.close()
             getHrPredictionPage(classifier)
+        elif event == "Main Menu":
+            window.close()
+            getMainSelectionPage(classifier)
+
+    window.close()
+
+def getVideoPredictionPage (classifier):
+    video_layout = [
+        [sg.Text('Select a MP4 file:')],
+        [sg.InputText(key='file_path'), sg.FileBrowse()],
+        [sg.Button("Predict My Heart Rate Range!"), sg.Button("Return")]
+    ]
+    window = sg.Window('Video Prediction', video_layout)
+
+    while True:
+        event, values = window.read()
+
+        if event == sg.WIN_CLOSED:
+            break
+
+        if event == 'Return':
+            window.close()
+            getMainSelectionPage(classifier)
+        elif event == 'Predict My Heart Rate Range!':
+            # TODO: placeholder result right now, it holds path rn
+            result = values['file_path']
+            window.close()
+            getVideoPredictionResultPage(classifier, result)
+
+    window.close()
+
+def getVideoPredictionResultPage (classifier, result):
+    video_layout = [
+        [sg.Text("Your predicted Heart rate is: "),sg.Text(result)],
+        [sg.Button("Redo"), sg.Button("Main Menu"), sg.Button("Exit")]
+    ]
+    window = sg.Window('Video Prediction Result', video_layout)
+
+    while True:
+        event, values = window.read()
+
+        if event == sg.WIN_CLOSED or event == "Exit":
+            break
+
+        if event == 'Redo':
+            window.close()
+            getVideoPredictionPage(classifier)
         elif event == "Main Menu":
             window.close()
             getMainSelectionPage(classifier)

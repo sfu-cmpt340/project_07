@@ -27,72 +27,72 @@ y = data_table.drop('heartrate', axis=1) # another excluding heartrate
 print("-----X-----\n",x.head())
 print("-----Y-----\n",y.head())
 
-## Grabbing BPM from video -----------------------------------------------------------------------------------
-# Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
-# Set your personal data path here:
-VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
-AUDIO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Audio\\") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
-print (VIDEO_PATH)
-for i in range(1,50):
-    print("__________Taking BPM from video ", i, "_______________")
-    avg_brightness, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
-    lowcut = 0.5
-    highcut = 2.5
+# ## Grabbing BPM from video -----------------------------------------------------------------------------------
+# # Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
+# # Set your personal data path here:
+# VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
+# AUDIO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Audio\\") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+# print (VIDEO_PATH)
+# for i in range(1,50):
+#     print("__________Taking BPM from video ", i, "_______________")
+#     avg_brightness, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+#     lowcut = 0.5
+#     highcut = 2.5
 
-    # Apply band-pass filter to average brightness values
-    # it makes the resulting heart rate signal smoother
-    filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
-    print("Plotting the detected signal from video...")
-    # Finding peaks
-    peaks, _ = find_peaks(filtered_brightness, height=0)
-    print(peaks)
-    # Plotting for easier debugging
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(avg_brightness, label='Original Signal')
-    # plt.plot(filtered_brightness, label='Filtered Signal')
-    # plt.title('Average Brightness with Band-pass Filtering')
-    # plt.xlabel('Frame')
-    # plt.ylabel('Average Brightness')
-    # plt.legend()
-    # plt.plot(peaks, filtered_brightness[peaks], "x")
-    # plt.show()
+#     # Apply band-pass filter to average brightness values
+#     # it makes the resulting heart rate signal smoother
+#     filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
+#     print("Plotting the detected signal from video...")
+#     # Finding peaks
+#     peaks, _ = find_peaks(filtered_brightness, height=0)
+#     print(peaks)
+#     # Plotting for easier debugging
+#     # plt.figure(figsize=(10, 6))
+#     # plt.plot(avg_brightness, label='Original Signal')
+#     # plt.plot(filtered_brightness, label='Filtered Signal')
+#     # plt.title('Average Brightness with Band-pass Filtering')
+#     # plt.xlabel('Frame')
+#     # plt.ylabel('Average Brightness')
+#     # plt.legend()
+#     # plt.plot(peaks, filtered_brightness[peaks], "x")
+#     # plt.show()
 
-    video_length = f.getVideoLengthSeconds(VIDEO_PATH + str(i) + ".mp4")
-    if (fps > 40):
-        fps /= 2
-    peak_times = peaks / fps
-    print("Heartbeat peak times: ", peak_times)
-    avg_bpm = (len(peaks) / video_length) * 60
-    print("Overall average BPM without sliding window: ", avg_bpm)
+#     video_length = f.getVideoLengthSeconds(VIDEO_PATH + str(i) + ".mp4")
+#     if (fps > 40):
+#         fps /= 2
+#     peak_times = peaks / fps
+#     print("Heartbeat peak times: ", peak_times)
+#     avg_bpm = (len(peaks) / video_length) * 60
+#     print("Overall average BPM without sliding window: ", avg_bpm)
 
-    # define a sliding window and step size (seconds)
-    WINDOW_SIZE = 5
-    STEP_SIZE = 0.5
+#     # define a sliding window and step size (seconds)
+#     WINDOW_SIZE = 5
+#     STEP_SIZE = 0.5
 
-    num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
-    window_starts = np.zeros(num_windows)
-    avg_bpm_in_windows = np.zeros(num_windows)
-    window_peaks = []
+#     num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
+#     window_starts = np.zeros(num_windows)
+#     avg_bpm_in_windows = np.zeros(num_windows)
+#     window_peaks = []
 
-    for i in range(num_windows):
-        window_start = peak_times[0] + i * STEP_SIZE
-        window_end = window_start + WINDOW_SIZE
+#     for i in range(num_windows):
+#         window_start = peak_times[0] + i * STEP_SIZE
+#         window_end = window_start + WINDOW_SIZE
 
-        if window_end > peak_times[-1]:
-            break
+#         if window_end > peak_times[-1]:
+#             break
 
-        # Find indices of peaks within the current window
-        peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
-        window_peaks.append(peak_times[peaks_in_window])
-        window_starts[i] = window_start
+#         # Find indices of peaks within the current window
+#         peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
+#         window_peaks.append(peak_times[peaks_in_window])
+#         window_starts[i] = window_start
 
-    window_bpms = []
-    for window in window_peaks:
-        # number of heartbeats / window time = bps
-        window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
+#     window_bpms = []
+#     for window in window_peaks:
+#         # number of heartbeats / window time = bps
+#         window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
 
-    print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
-    print("Windowed bpms average: ", np.average(window_bpms))
+#     print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
+#     print("Windowed bpms average: ", np.average(window_bpms))
 
 ## Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
 # Cite: https://www.kaggle.com/code/durgancegaur/a-guide-to-any-classification-problem
@@ -132,7 +132,8 @@ df_nontree.head()
 
 # Classifier method: Random forest
 acc_RandF=[]
-kf=model_selection.StratifiedKFold(n_splits=2) # test with different n_splits
+kf=model_selection.StratifiedKFold(n_splits=2) # test with different n_splits when we finish updating the dataset
+
 for fold , (trn_,val_) in enumerate(kf.split(X=df_tree,y=y)):
     
     X_train=df_tree.loc[trn_,feature_col_tree]
@@ -144,6 +145,8 @@ for fold , (trn_,val_) in enumerate(kf.split(X=df_tree,y=y)):
     clf=RandomForestClassifier(n_estimators=200,criterion="entropy")
     clf.fit(X_train,y_train)
     y_pred=clf.predict(X_valid)
+
+print(f"Fold: {fold}")
 
 # Checking Feature importance 
 plt.figure(figsize=(10,6))
