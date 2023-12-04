@@ -106,7 +106,7 @@ for i in range(0,50):
      Y.append(CATEGORIES.index(Classifications[i]))
 
 clf = svm.SVC(gamma=0.001, C=100.)
-clf.fit(X[:-1], Y[:-1])
+clf.fit(X, Y)
 
 with open('predict_heart_rate_from_video.pkl', 'wb') as fid:
     pickle.dump(clf, fid)  
