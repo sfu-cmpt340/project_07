@@ -132,7 +132,8 @@ df_nontree.head()
 
 # Classifier method: Random forest
 acc_RandF=[]
-kf=model_selection.StratifiedKFold(n_splits=2) # test with different n_splits
+kf=model_selection.StratifiedKFold(n_splits=2) # test with different n_splits when we finish updating the dataset
+
 for fold , (trn_,val_) in enumerate(kf.split(X=df_tree,y=y)):
     
     X_train=df_tree.loc[trn_,feature_col_tree]
@@ -144,6 +145,8 @@ for fold , (trn_,val_) in enumerate(kf.split(X=df_tree,y=y)):
     clf=RandomForestClassifier(n_estimators=200,criterion="entropy")
     clf.fit(X_train,y_train)
     y_pred=clf.predict(X_valid)
+
+print(f"Fold: {fold}")
 
 # Checking Feature importance 
 plt.figure(figsize=(10,6))
