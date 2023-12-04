@@ -5,50 +5,95 @@ from amazing import functions as f
 import tensorflow as tf
 import sounddevice as sd
 import numpy as np
-from scipy import signal
-from scipy.io import wavfile
+import cv2
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+from scipy.fft import fft, ifft
 
-# print("Reading data csv...")
-# currentDir = os.getcwd()
-# audioData = "audio.csv"
-# audioPath = os.path.join(currentDir, audioData)
+print("Reading data csv...")
+video_data_path = os.path.join(os.getcwd(), "video.csv")
+data_table = f.constructTable(video_data_path) # overall table from csv
 
-# audioTable = f.constructTable(audioPath)
+x = data_table[['id','heartrate']] # one table for id and heartrate
+y = data_table.drop('heartrate', axis=1) # another excluding heartrate
 
-# avgHeartRates = []
-# for hrRange in audioTable['heartrate'].values:
-#     bounds = hrRange.split("-")
-    
-#     avgHeartRates.append((int(bounds[0]) + int(bounds[1]))/2)
+#printing tables
+print("-----X-----\n",x.head())
+print("-----Y-----\n",y.head())
 
+## Grabbing BPM from video
+# Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
+# Set your personal data path here:
+VIDEO_PATH = os.path.join(os.getcwd() + "/Video/") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
+AUDIO_PATH = os.path.join(os.getcwd() + "/Audio/") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
+for i in range(1,50):
+    print("__________Taking BPM from video ", i, "_______________")
+    avg_brightness, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+    lowcut = 0.5
+    highcut = 2.5
 
-# # correlation between sleep duration & heart rate
-# x = avgHeartRates
-# y = audioTable['sleepDuration'].values
+    # Apply band-pass filter to average brightness values
+    # it makes the resulting heart rate signal smoother
+    filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
+    print("Plotting the detected signal from video...")
+    # Finding peaks
+    peaks, _ = find_peaks(filtered_brightness, height=0)
+    print(peaks)
+    # Plotting for easier debugging
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(avg_brightness, label='Original Signal')
+    # plt.plot(filtered_brightness, label='Filtered Signal')
+    # plt.title('Average Brightness with Band-pass Filtering')
+    # plt.xlabel('Frame')
+    # plt.ylabel('Average Brightness')
+    # plt.legend()
+    # plt.plot(peaks, filtered_brightness[peaks], "x")
+    # plt.show()
 
-# f.correlate(x,y)
+    video_length = f.getVideoLengthSeconds(VIDEO_PATH + str(i) + ".mp4")
+    if (fps > 40):
+        fps /= 2
+    peak_times = peaks / fps
+    print("Heartbeat peak times: ", peak_times)
+    avg_bpm = (len(peaks) / video_length) * 60
+    print("Overall average BPM without sliding window: ", avg_bpm)
 
+    # define a sliding window and step size (seconds)
+    WINDOW_SIZE = 5
+    STEP_SIZE = 0.5
 
-# # for i in range(len(audioTable['id'].values)):
+    num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
+    window_starts = np.zeros(num_windows)
+    avg_bpm_in_windows = np.zeros(num_windows)
+    window_peaks = []
+
+    for i in range(num_windows):
+        window_start = peak_times[0] + i * STEP_SIZE
+        window_end = window_start + WINDOW_SIZE
+
+        if window_end > peak_times[-1]:
+            break
+
+        # Find indices of peaks within the current window
+        peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
+        window_peaks.append(peak_times[peaks_in_window])
+        window_starts[i] = window_start
+
+    window_bpms = []
+    for window in window_peaks:
+        # number of heartbeats / window time = bps
+        window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
+
+    print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
+    print("Windowed bpms average: ", np.average(window_bpms))
 
 ## DL Model training code here
 print("DL Model Training...")
 training_data = []
 
-# Set your personal data path here:
-VIDEO_PATH = os.getcwd() + "\\src\\TrainingData\\Video\\"
-AUDIO_PATH = os.getcwd() + "\\src\\TrainingData\\Audio\\"
-
-CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
-Classifications = ["80-90", "80-90", "120-130", "80-90", "80-90", "100-110", "140-150", "90-100","90-100","90-100","80-90","80-90","130-140","80-90","100-110","110-120","120-130","90-100","130-140","110-120","70-80","60-70","60-70","110-120","90-100","80-90","80-90","110-120","70-80","110-120","70-80","100-110","150-160","100-110","60-70","100-110","70-80","130-140","100-110","100-110","100-110","130-140","70-80","90-100","70-80","70-80","70-80","150-160","110-120"]
-print(len(Classifications))
-X = []
-Y = []
-
 # Process Video
-for i in range(0,49):
-    print(f"Processing sample {i+1}")
-    avg_brightnesses = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i+1) + ".mp4")
+for i in range(1,50):
+    avg_brightnesses, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
     # get audio signal 
     #audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
     # add pair to training data
@@ -95,7 +140,7 @@ model.save('heart_rate.model')
 # try predicting
 print("DL Model Prediction Testing...")
 new_model = tf.keras.models.load_model('heart_rate.model')
-x_test = f.getVideoAvgBrightnesses(VIDEO_PATH + str(9) + ".mp4")
+x_test, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
 predictions = new_model.predict([x_test])
 print(predictions)
 print(CATEGORIES[np.argmax(predictions[0])])

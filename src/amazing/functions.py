@@ -5,8 +5,9 @@ from scipy import stats
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
 
-columnNames = ['id','date','subjectID','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
+columnNames = ['id','date','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
 
 def constructTable(dataFilePath):
     table = pd.read_csv(dataFilePath)
@@ -14,8 +15,7 @@ def constructTable(dataFilePath):
         table.columns = columnNames
         table = table.astype({
             'id': int,
-            'date': 'datetime64',
-            'subjectID': int,
+            'date': 'datetime64[ns]',
             'heartrate': str,
             'state': str,
             'activity': str,
@@ -65,4 +65,19 @@ def getVideoAvgBrightnesses(videoPath):
         avg_brightnesses.append(np.average(gray_img))
         success, img = vid_source.read() 
         count+=iterator
-    return avg_brightnesses
+    return avg_brightnesses, vid_source.get(cv2.CAP_PROP_FPS)
+
+# Order: bandwidth of the frequency range that the filter passes
+def getBandpassFilter(data, lowcut, highcut, fs, order=4):
+    nyquist = 0.5 * fs
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    b, a = butter(order, [low, high], btype='band')
+    y = filtfilt(b, a, data)
+    return y
+
+def getVideoLengthSeconds(videoPath):
+    vid_source = cv2.VideoCapture(videoPath)
+    fps = vid_source.get(cv2.CAP_PROP_FPS)
+    frame_count = int(vid_source.get(cv2.CAP_PROP_FRAME_COUNT))
+    return frame_count / fps
