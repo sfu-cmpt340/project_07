@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt
 from sklearn.ensemble import RandomForestClassifier
 
-columnNames = ['id','date','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration']
+columnNames = ['id','date','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration', 'gender', 'fitnessLevel']
 
 def constructTable(dataFilePath):
     table = pd.read_csv(dataFilePath)
@@ -23,12 +23,14 @@ def constructTable(dataFilePath):
             'BMI': float,
             'age': int,
             'caffeineLevel': str,
-            'sleepDuration': float
+            'sleepDuration': float,
+            'gender': str,
+            'fitnessLevel': int
         })
     
     except Exception as error:
         print('error:', error)   
-        print("Error creating table - make sure columns in csv are same as above.")
+        print("Error creating table - make sure columns in csv are same as the one in functions.py.")
  
     return table
 
@@ -122,6 +124,7 @@ def getHrPredictionPage(classifier):
         [sg.Text('Approximate Caffeine Intake'), sg.Combo(['None', 'Low (1-2 cup of tea)', 'Moderate (1-2 cup of coffee)', 'High (3+ cup of coffee)'], key='caffeine')],
         [sg.Text('Sleep Duration (Eg. 8.0)'), sg.InputText(key='sleep_duration', size=(5, 1), enable_events=True)],
         [sg.Text('Biological Gender'),sg.Combo(['Female', 'Male'], key='gender')],
+        [sg.Text('Self fitness Level'),sg.Combo(['Not Active', 'Occasionally Active', 'Average', 'Very Active', 'Extremely Active'], key='fitness')],
         [sg.Button('Predict My Current Heart Rate Range!'), sg.Button('Return')]
     ]
 
@@ -146,13 +149,14 @@ def getHrPredictionPage(classifier):
             bmi = values['bmi']
             sleep_duration = values['sleep_duration']
             gender = values['gender']
+            fitness = values['fitness']
 
             if state == 'Sitting':
-                state = 0
-            elif state == 'Standing':
                 state = 1
-            else:
+            elif state == 'Standing':
                 state = 2
+            else:
+                state = 0
 
             if activity == 'Resting':
                 activity = 0
@@ -174,7 +178,19 @@ def getHrPredictionPage(classifier):
             if gender == 'Female':
                 gender = 0
             elif gender == 'Male':
-                gender = 1  
+                gender = 1
+
+            if fitness == 'Not Active':
+                fitness = 1
+            elif fitness == 'Occasionally Active':
+                fitness = 2
+            elif fitness == 'Average':
+                fitness = 3
+            elif fitness == 'Very Active':
+                fitness = 4
+            else:
+                fitness = 5  
+
             try:
                 age = int(age)
                 bmi = float(bmi)
@@ -184,13 +200,13 @@ def getHrPredictionPage(classifier):
 
             print (state, activity, bmi, age, caffeine, sleep_duration, gender)
             window.close()
-            getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, sleep_duration, gender)
+            getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, sleep_duration, gender, fitness)
 
     window.close()
 
-def getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, sleep_duration, gender):
+def getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, sleep_duration, gender, fitness):
     # STATE, ACTIVITY, BMI, AGE, CAFFEINE INTAKE, SLEEP DURATION
-    data = [state, activity, bmi, age, caffeine, sleep_duration]
+    data = [state, activity, bmi, age, caffeine, sleep_duration, gender, fitness]
     labels = ['Very Low (0-60)', 'Low (60 - 70)', 'Medium Low (70-80)', 'Medium (80-90)', 'Medium High (90-100)', 'High (100-120)', 'Very High (120-140)', 'Extremely High (140-160)']
     colour = ['darkblue', 'blue', 'lightblue', 'green', 'yellow', 'orange', 'red', 'darkred']
 
