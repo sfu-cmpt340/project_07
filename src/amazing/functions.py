@@ -81,3 +81,26 @@ def getVideoLengthSeconds(videoPath):
     fps = vid_source.get(cv2.CAP_PROP_FPS)
     frame_count = int(vid_source.get(cv2.CAP_PROP_FRAME_COUNT))
     return frame_count / fps
+
+def getHrRange(hr):
+    hr = int(hr)
+    if 60 <= hr < 70:
+        return "60-70"
+    elif 70 <= hr < 80:
+        return "70-80"
+    elif 80 <= hr < 90:
+        return "80-90"
+    elif 90 <= hr < 100:
+        return "90-100"
+    elif 100 <= hr < 110:
+        return "100-110"
+    elif 110 <= hr < 120:
+        return "110-120"
+    elif 120 <= hr < 130:
+        return "120-130"
+    elif 130 <= hr < 140:
+        return "130-140"
+    elif 140 <= hr < 150:
+        return "140-150"
+    elif 150 <= hr <= 160:
+        return "150-160"
