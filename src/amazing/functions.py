@@ -124,7 +124,7 @@ def getHrPredictionPage(classifier):
         [sg.Text('Approximate Caffeine Intake'), sg.Combo(['None', 'Low (1-2 cup of tea)', 'Moderate (1-2 cup of coffee)', 'High (3+ cup of coffee)'], key='caffeine')],
         [sg.Text('Sleep Duration (Eg. 8.0)'), sg.InputText(key='sleep_duration', size=(5, 1), enable_events=True)],
         [sg.Text('Biological Gender'),sg.Combo(['Female', 'Male'], key='gender')],
-        [sg.Text('Self fitness Level'),sg.Combo(['Not Active', 'Occasionally Active', 'Average', 'Very Active', 'Extremely Active'], key='fitness')],
+        [sg.Text('Self Assessed Fitness Level'),sg.Combo(['Not Active', 'Occasionally Active', 'Average', 'Very Active', 'Extremely Active'], key='fitness')],
         [sg.Button('Predict My Current Heart Rate Range!'), sg.Button('Return')]
     ]
 
