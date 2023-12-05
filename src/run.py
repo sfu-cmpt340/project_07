@@ -25,75 +25,9 @@ y = data_table.drop('heartrate', axis=1) # another excluding heartrate
 print("-----X-----\n",x.head())
 print("-----Y-----\n",y.head())
 
-## Grabbing BPM from video -----------------------------------------------------------------------------------
-# Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
-# Set your personal data path here:
-VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
-AUDIO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Audio\\") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
-print (VIDEO_PATH)
-for i in range(1,50):
-    print("__________Taking BPM from video ", i, "_______________")
-    avg_brightness, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
-    lowcut = 0.5
-    highcut = 2.5
-
-    # Apply band-pass filter to average brightness values
-    # it makes the resulting heart rate signal smoother
-    filtered_brightness = f.getBandpassFilter(avg_brightness, lowcut, highcut, fps)
-    print("Plotting the detected signal from video...")
-    # Finding peaks
-    peaks, _ = find_peaks(filtered_brightness, height=0)
-    print(peaks)
-    ## Plotting for easier debugging
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(avg_brightness, label='Original Signal')
-    # plt.plot(filtered_brightness, label='Filtered Signal')
-    # plt.title('Average Brightness with Band-pass Filtering')
-    # plt.xlabel('Frame')
-    # plt.ylabel('Average Brightness')
-    # plt.legend()
-    # plt.plot(peaks, filtered_brightness[peaks], "x")
-    # plt.show()
-
-    video_length = f.getVideoLengthSeconds(VIDEO_PATH + str(i) + ".mp4")
-    if (fps > 40):
-        fps /= 2
-    peak_times = peaks / fps
-    print("Heartbeat peak times: ", peak_times)
-    avg_bpm = (len(peaks) / video_length) * 60
-    print("Overall average BPM without sliding window: ", avg_bpm)
-
-    # define a sliding window and step size (seconds)
-    WINDOW_SIZE = 5
-    STEP_SIZE = 0.5
-
-    num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
-    window_starts = np.zeros(num_windows)
-    avg_bpm_in_windows = np.zeros(num_windows)
-    window_peaks = []
-
-    for i in range(num_windows):
-        window_start = peak_times[0] + i * STEP_SIZE
-        window_end = window_start + WINDOW_SIZE
-
-        if window_end > peak_times[-1]:
-            break
-
-        # Find indices of peaks within the current window
-        peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
-        window_peaks.append(peak_times[peaks_in_window])
-        window_starts[i] = window_start
-
-    window_bpms = []
-    for window in window_peaks:
-        # number of heartbeats / window time = bps
-        window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
-
-    print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
-    print("Windowed bpms average: ", np.average(window_bpms))
-
-# DL Model training code here
-print("DL Model Training...")
+## MODEL TRAINING CODE: Video DL Model training code here -----------------------------------------------------------------------------------
+TRAINING_VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\")
+print("Video DL Model Training...")
 CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
 heartrates = data_table['heartrate']
 Classifications = [f.getHrRange(x) for x in heartrates]
@@ -103,9 +37,10 @@ X = []
 Y = []
 
 # Process Video
-for i in range(0,50):
+# NOTE: Change the range based on the number of videos
+for i in range(0,49):
      print(f"Processing sample {i+1}")
-     avg_brightnesses, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i+1) + ".mp4")
+     avg_brightnesses, fps = f.getVideoAvgBrightnesses(TRAINING_VIDEO_PATH + str(i+1) + ".mp4")
      # Apply band pass filter to average brightnesses to make it easier to distinguish peaks
      filtered_brightness = f.getBandpassFilter(avg_brightnesses, 0.5, 2.5, fps)
      # Construct training data
@@ -115,30 +50,14 @@ for i in range(0,50):
 clf = svm.SVC(gamma=0.001, C=100.)
 clf.fit(X, Y)
 
-with open('predict_heart_rate_from_video.pkl', 'wb') as fid:
+with open('../predict_heart_rate_from_video.pkl', 'wb') as fid:
     pickle.dump(clf, fid)  
 
-# try predicting
-print("DL Model Prediction Testing...")
-
 # load model
-with open('predict_heart_rate_from_video.pkl', 'rb') as fid:
+with open('../predict_heart_rate_from_video.pkl', 'rb') as fid:
     clf_loaded = pickle.load(fid)
 
-# load test data
-test_indices = range(66,71)
-x_test = []
-for i in test_indices:
-    test_brightnesses, test_fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mov")
-    test_brightnesses = f.getBandpassFilter(test_brightnesses, 0.5, 2.5, test_fps)
-    x_test.append(test_brightnesses)
-
-# make prediction    
-predictions = clf_loaded.predict(x_test)
-
-for i in range(len(predictions)):
-    print(f"Heartrate prediction for video {test_indices[i]} is: {CATEGORIES[predictions[i]]}")
-## Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
+## MODEL TRAINING CODE: Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
 # Cite: https://www.kaggle.com/code/durgancegaur/a-guide-to-any-classification-problem
 df = pd.read_csv(os.getcwd()+"\\video.csv")
 df = df.drop(['ID', 'DATE'], axis=1)
@@ -202,62 +121,5 @@ plt.yticks(range(len(idxs)),[feature_col_tree[i] for i in idxs])
 plt.xlabel("Random Forest Feature Importance")
 plt.show()
 
-# Display GUI
-f.getMainSelectionPage(clf)
-
-## DL Video -> Audio Prediction Model training code here -----------------------------------------------------------------------------------
-# print("DL Model Training...")
-# training_data = []
-
-# # Process Video
-# for i in range(1,50):
-#     avg_brightnesses, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
-#     # get audio signal 
-#     audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
-#     # add pair to training data
-#     training_data.append([avg_brightnesses,audio_signal[0][:300000]])
-
-# X = []
-# Y = []
-
-# for video,audio in training_data:
-#     X.append(video)
-#     Y.append(audio)
-
-# X = np.array(X)
-# Y = np.array(Y)
-
-# training_size=45
-
-# x_train = X[:training_size]
-# y_train = Y[:training_size]
-# x_test = X[training_size:]
-# y_test = Y[training_size:]
-
-# model = tf.keras.models.Sequential()
-
-# model.add(tf.keras.layers.Flatten(input_shape=(250,)))
-# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-# model.add(tf.keras.layers.Dense(300000))
-
-# model.compile(optimizer = 'adam', loss = 'mse') 
-
-# model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
-# model.save('heart_rate.model')
-
-# # try predicting
-# print("DL Model Prediction Testing...")
-# new_model = tf.keras.models.load_model('heart_rate.model')
-# x_test, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
-# predictions = new_model.predict([x_test])
-# print(predictions[0])
-
-# # Write output signal to file
-# with open("output.txt", "w") as txt_file:
-#     for line in predictions[0]:
-#         txt_file.write(str(line)+'\n')
-
-# # Play sound - WARNING may be very loud
-# sd.play(predictions[0],44100)
-# sd.wait()
+## MAIN GUI CALLER -----------------------------------------------------------------------------------
+f.getMainSelectionPage(clf, clf_loaded)
