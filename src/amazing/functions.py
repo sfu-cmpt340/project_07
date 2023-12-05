@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt
 from sklearn.ensemble import RandomForestClassifier
+from scipy.signal import find_peaks
 
 columnNames = ['id','date','heartrate','state','activity','BMI','age','caffeineLevel','sleepDuration', 'gender', 'fitnessLevel']
 
@@ -102,11 +103,12 @@ import PySimpleGUI as sg
 
 
 
-def getMainSelectionPage(classifier):
+def getMainSelectionPage(classifier, videoClf):
     main_menu_layout = [
         [sg.Text("How would you like to predict your heart rate?")],
         [sg.Button("Predict Heart Rate from Your States")], 
-        [sg.Button("Predict Heart rate from a video")],
+        [sg.Button("Predict Heart rate from a video (With DL)")],
+        [sg.Button("Predict Heart rate from a video (Without DL)")],
         [sg.Button("Exit")]
     ]
     window = sg.Window('Main Selection', main_menu_layout)
@@ -119,15 +121,19 @@ def getMainSelectionPage(classifier):
 
         if event == 'Predict Heart Rate from Your States':
             window.close()
-            getHrPredictionPage(classifier)
+            getHrPredictionPage(classifier, videoClf)
 
-        if event == 'Predict Heart rate from a video':
+        if event == 'Predict Heart rate from a video (With DL)': # method 1
             window.close()
-            getVideoPredictionPage(classifier)
+            getVideoPage(classifier, videoClf, 1)
+
+        if event == 'Predict Heart rate from a video (Without DL)': # method 2
+            window.close()
+            getVideoPage(classifier, videoClf, 2)
 
     window.close()
 
-def getHrPredictionPage(classifier):
+def getHrPredictionPage(classifier, videoClf):
     hr_prediction_layout = [
         [sg.Text("Input your information")],
         [sg.Text('State'),sg.Combo(['Sitting', 'Standing', 'Lying Down'], key='state')],
@@ -151,7 +157,7 @@ def getHrPredictionPage(classifier):
 
         if event == 'Return':
             window.close()
-            getMainSelectionPage(classifier)
+            getMainSelectionPage(classifier, videoClf)
 
         if event == 'Predict My Current Heart Rate Range!':
             # Validate input data types
@@ -213,11 +219,11 @@ def getHrPredictionPage(classifier):
 
             print (state, activity, bmi, age, caffeine, sleep_duration, gender)
             window.close()
-            getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, sleep_duration, gender, fitness)
+            getHrPredictionResultPage(classifier, videoClf, state, activity, bmi, age, caffeine, sleep_duration, gender, fitness)
 
     window.close()
 
-def getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, sleep_duration, gender, fitness):
+def getHrPredictionResultPage(classifier, videoClf, state, activity, bmi, age, caffeine, sleep_duration, gender, fitness):
     # STATE, ACTIVITY, BMI, AGE, CAFFEINE INTAKE, SLEEP DURATION
     data = [state, activity, bmi, age, caffeine, sleep_duration, gender, fitness]
     labels = ['Very Low (0-60)', 'Low (60 - 70)', 'Medium Low (70-80)', 'Medium (80-90)', 'Medium High (90-100)', 'High (100-120)', 'Very High (120-140)', 'Extremely High (140-160)']
@@ -238,20 +244,21 @@ def getHrPredictionResultPage(classifier, state, activity, bmi, age, caffeine, s
 
         if event == 'Redo':
             window.close()
-            getHrPredictionPage(classifier)
+            getHrPredictionPage(classifier, videoClf)
         elif event == "Main Menu":
             window.close()
-            getMainSelectionPage(classifier)
+            getMainSelectionPage(classifier, videoClf)
 
     window.close()
 
-def getVideoPredictionPage (classifier):
+def getVideoPage (classifier, videoClf, method):
     video_layout = [
         [sg.Text('Select a MP4 file:')],
         [sg.InputText(key='file_path'), sg.FileBrowse()],
         [sg.Button("Predict My Heart Rate Range!"), sg.Button("Return")]
     ]
-    window = sg.Window('Video Prediction', video_layout)
+    window_text = 'Video Prediction Method ' + str(method)
+    window = sg.Window(window_text, video_layout)
 
     while True:
         event, values = window.read()
@@ -261,20 +268,32 @@ def getVideoPredictionPage (classifier):
 
         if event == 'Return':
             window.close()
-            getMainSelectionPage(classifier)
+            getMainSelectionPage(classifier, videoClf)
         elif event == 'Predict My Heart Rate Range!':
-            # TODO: placeholder result right now, it holds path rn
-            result = values['file_path']
-            window.close()
-            getVideoPredictionResultPage(classifier, result)
+            path = values['file_path']
+            if method == 1: # ML method
+                result = getWithMLVideoPrediction(videoClf, path)
+                window.close()
+                getVideoPredictionResultPage(classifier, videoClf, result, method)
+            else: # No ML method
+                result = getNoMLVideoPrediction(path)
+                window.close()
+                getVideoPredictionResultPage(classifier, videoClf, result, method)
 
     window.close()
 
-def getVideoPredictionResultPage (classifier, result):
-    video_layout = [
-        [sg.Text("Your predicted Heart rate is: "),sg.Text(result)],
-        [sg.Button("Redo"), sg.Button("Main Menu"), sg.Button("Exit")]
-    ]
+def getVideoPredictionResultPage (classifier, videoClf, result, method):
+    if method == 1:
+        video_layout = [
+            [sg.Text("Your predicted heart beat range is: "), sg.Text(result)],
+            [sg.Button("Redo"), sg.Button("Main Menu"), sg.Button("Exit")]
+        ]
+    else:
+        video_layout = [
+            [sg.Text("Your detected heart rate throughout the video is: "), sg.Text(result)],
+            [sg.Text("Your average heart rate throughout the video is: "), sg.Text(np.average(result))],
+            [sg.Button("Redo"), sg.Button("Main Menu"), sg.Button("Exit")]
+        ]
     window = sg.Window('Video Prediction Result', video_layout)
 
     while True:
@@ -285,9 +304,81 @@ def getVideoPredictionResultPage (classifier, result):
 
         if event == 'Redo':
             window.close()
-            getVideoPredictionPage(classifier)
+            getVideoPage(classifier, videoClf, method)
         elif event == "Main Menu":
             window.close()
-            getMainSelectionPage(classifier)
+            getMainSelectionPage(classifier, videoClf)
 
     window.close()
+
+def getNoMLVideoPrediction (path):
+    # Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
+    avg_brightness, fps = getVideoAvgBrightnesses(path)
+    lowcut = 0.5
+    highcut = 2.5
+
+    # Apply band-pass filter to average brightness values
+    # it makes the resulting heart rate signal smoother
+    filtered_brightness = getBandpassFilter(avg_brightness, lowcut, highcut, fps)
+    print("Plotting the detected signal from video...")
+    # Finding peaks
+    peaks, _ = find_peaks(filtered_brightness, height=0)
+    print(peaks)
+    plt.figure(figsize=(10, 6))
+    plt.plot(avg_brightness, label='Original Signal')
+    plt.plot(filtered_brightness, label='Filtered Signal')
+    plt.title('Average Brightness with Band-pass Filtering [Close to continue]')
+    plt.xlabel('Frame')
+    plt.ylabel('Average Brightness')
+    plt.legend()
+    plt.plot(peaks, filtered_brightness[peaks], "x")
+    plt.show()
+
+    video_length = getVideoLengthSeconds(path)
+    if (fps > 40):
+        fps /= 2
+    peak_times = peaks / fps
+    # print("Heartbeat peak times: ", peak_times)
+    # avg_bpm = (len(peaks) / video_length) * 60
+    # print("Overall average BPM without sliding window: ", avg_bpm)
+
+    # define a sliding window and step size (seconds)
+    WINDOW_SIZE = 5
+    STEP_SIZE = 0.5
+
+    num_windows = int((peak_times[-1] - peak_times[0]) / STEP_SIZE)
+    window_starts = np.zeros(num_windows)
+    avg_bpm_in_windows = np.zeros(num_windows)
+    window_peaks = []
+
+    for i in range(num_windows):
+        window_start = peak_times[0] + i * STEP_SIZE
+        window_end = window_start + WINDOW_SIZE
+
+        if window_end > peak_times[-1]:
+            break
+
+        # Find indices of peaks within the current window
+        peaks_in_window = np.where((peak_times >= window_start) & (peak_times < window_end))[0]
+        window_peaks.append(peak_times[peaks_in_window])
+        window_starts[i] = window_start
+
+    window_bpms = []
+    for window in window_peaks:
+        # number of heartbeats / window time = bps
+        window_bpms.append((len(window) / WINDOW_SIZE) * 60) 
+
+    return window_bpms
+
+def getWithMLVideoPrediction (videoClf, path):
+    # load test data
+    x = []
+    brightnesses, fps = getVideoAvgBrightnesses(path)
+    brightnesses = getBandpassFilter(brightnesses, 0.5, 2.5, fps)
+    x.append(brightnesses)
+
+    # make prediction    
+    predict = videoClf.predict(x)
+    CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
+
+    return CATEGORIES[predict[0]]
