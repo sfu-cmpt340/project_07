@@ -1,7 +1,6 @@
 # Genrated files
 *.model
 output.txt
-*.pkl
 
 # Data
 src/TrainingData

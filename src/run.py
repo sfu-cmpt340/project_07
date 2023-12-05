@@ -26,35 +26,36 @@ print("-----X-----\n",x.head())
 print("-----Y-----\n",y.head())
 
 ## MODEL TRAINING CODE: Video DL Model training code here -----------------------------------------------------------------------------------
-TRAINING_VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\")
-print("Video DL Model Training...")
-CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
-heartrates = data_table['heartrate']
-Classifications = [f.getHrRange(x) for x in heartrates]
+# NOTE: uncomment this to train the model
+# TRAINING_VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\")
+# print("Video DL Model Training...")
+# CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
+# heartrates = data_table['heartrate']
+# Classifications = [f.getHrRange(x) for x in heartrates]
 
-# Define training data
-X = []
-Y = []
+# # Define training data
+# X = []
+# Y = []
 
-# Process Video
+# # Process Video
 # NOTE: Change the range based on the number of videos
-for i in range(0,49):
-     print(f"Processing sample {i+1}")
-     avg_brightnesses, fps = f.getVideoAvgBrightnesses(TRAINING_VIDEO_PATH + str(i+1) + ".mp4")
-     # Apply band pass filter to average brightnesses to make it easier to distinguish peaks
-     filtered_brightness = f.getBandpassFilter(avg_brightnesses, 0.5, 2.5, fps)
-     # Construct training data
-     X.append(filtered_brightness)
-     Y.append(CATEGORIES.index(Classifications[i]))
+# for i in range(0,49):
+#      print(f"Processing sample {i+1}")
+#      avg_brightnesses, fps = f.getVideoAvgBrightnesses(TRAINING_VIDEO_PATH + str(i+1) + ".mp4")
+#      # Apply band pass filter to average brightnesses to make it easier to distinguish peaks
+#      filtered_brightness = f.getBandpassFilter(avg_brightnesses, 0.5, 2.5, fps)
+#      # Construct training data
+#      X.append(filtered_brightness)
+#      Y.append(CATEGORIES.index(Classifications[i]))
 
-clf = svm.SVC(gamma=0.001, C=100.)
-clf.fit(X, Y)
+# clf = svm.SVC(gamma=0.001, C=100.)
+# clf.fit(X, Y)
 
-with open('../predict_heart_rate_from_video.pkl', 'wb') as fid:
-    pickle.dump(clf, fid)  
+# with open('predict_heart_rate_from_video.pkl', 'wb') as fid:
+#     pickle.dump(clf, fid)  
 
 # load model
-with open('../predict_heart_rate_from_video.pkl', 'rb') as fid:
+with open('predict_heart_rate_from_video.pkl', 'rb') as fid:
     clf_loaded = pickle.load(fid)
 
 ## MODEL TRAINING CODE: Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
@@ -109,8 +110,6 @@ for fold , (trn_,val_) in enumerate(kf.split(X=df_tree,y=y)):
     clf.fit(X_train,y_train)
     y_pred=clf.predict(X_valid)
 
-print(f"Fold: {fold}")
-
 # Checking Feature importance 
 plt.figure(figsize=(10,6))
 importance = clf.feature_importances_
@@ -120,6 +119,13 @@ plt.barh(range(len(idxs)),importance[idxs],align="center")
 plt.yticks(range(len(idxs)),[feature_col_tree[i] for i in idxs])
 plt.xlabel("Random Forest Feature Importance")
 plt.show()
+
+with open('predict_heart_rate_from_feature.pkl', 'wb') as fid:
+    pickle.dump(clf, fid)
+
+# load model
+with open('predict_heart_rate_from_feature.pkl', 'rb') as fid:
+    clf = pickle.load(fid)
 
 ## MAIN GUI CALLER -----------------------------------------------------------------------------------
 f.getMainSelectionPage(clf, clf_loaded)
