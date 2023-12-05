@@ -5,11 +5,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.fft import fft, ifft
-from sklearn import svm
+from sklearn.neighbors import KNeighborsClassifier
 import pickle
 import seaborn as sn
 from sklearn.preprocessing import LabelEncoder
 from sklearn import model_selection
+from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, roc_auc_score
 import PySimpleGUI as sg
@@ -25,9 +26,9 @@ y = data_table.drop('heartrate', axis=1) # another excluding heartrate
 print("-----X-----\n",x.head())
 print("-----Y-----\n",y.head())
 
-## Grabbing BPM from video -----------------------------------------------------------------------------------
-# Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
-# Set your personal data path here:
+# ## Grabbing BPM from video -----------------------------------------------------------------------------------
+# # Help: http://www.ignaciomellado.es/blog/Measuring-heart-rate-with-a-smartphone-camera
+# # Set your personal data path here:
 VIDEO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Video\\") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
 AUDIO_PATH = os.path.join(os.getcwd() + "\\src\\TrainingData\\Audio\\") #EX. os.getcwd() + "\\src\\TrainingData\\Audio\\"
 print (VIDEO_PATH)
@@ -94,39 +95,66 @@ for i in range(1,50):
 
 # DL Model training code here
 print("DL Model Training...")
-CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
+# HR zones slightly modified from : https://www.polar.com/blog/running-heart-rate-zones-basics/
+CATEGORIES = ["Zone 1 - Resting/Very light - 60-90 bpm", "Zone 2 - Light - 90-110 bpm", "Zone 3 - Moderate - 110-130 bpm", "Zone 4 - Hard - 130-160 bpm"]
 heartrates = data_table['heartrate']
-Classifications = [f.getHrRange(x) for x in heartrates]
-
+Classifications = [f.getHrZoneIndex(x) for x in heartrates]
 # Define training data
 X = []
 Y = []
 
+# Selected videos that have the most easily seen peaks
+# good videos (not equal amount for each HR zone)
+# training_videos = [1,3,5,6,7,10,12,17,21,23,29,34,35,37,39,43,45,46,54,64]
+# good + decent videos (not equal amount for each HR zone)
+# training_videos1 = [1,3,4,5,6,7,9,10,12,14,15,17,21,22,23,25,27,29,31,32,34,35,36,37,39,41,43,45,46,47,49,64,54]
+
+# 3 videos for each of the 4 HR zones
+best_training_videos = [1,5,12,4,6,9,3,17,49,7,33,63]
+
 # Process Video
-for i in range(0,50):
-     print(f"Processing sample {i+1}")
-     avg_brightnesses, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i+1) + ".mp4")
+for i in best_training_videos:
+     print(f"Processing sample {i}")
+     avg_brightnesses, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
      # Apply band pass filter to average brightnesses to make it easier to distinguish peaks
      filtered_brightness = f.getBandpassFilter(avg_brightnesses, 0.5, 2.5, fps)
      # Construct training data
      X.append(filtered_brightness)
-     Y.append(CATEGORIES.index(Classifications[i]))
+     Y.append(Classifications[i-1])
 
-clf = svm.SVC(gamma=0.001, C=100.)
-clf.fit(X, Y)
+x_test = []
+y_test = []
+for i in [37,29,35,23,10,45,46,54,64]:
+    avg_brightnesses, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
+    # Apply band pass filter to average brightnesses to make it easier to distinguish peaks
+    filtered_brightness = f.getBandpassFilter(avg_brightnesses, 0.5, 2.5, fps)
+    x_test.append(filtered_brightness)
+    y_test.append(Classifications[i-1])
+
+# fine tune parameters
+clf = KNeighborsClassifier()
+param_grid = [{
+    "n_neighbors" : [1,3,5], "weights": ["uniform","distance"], "algorithm" : ["auto", "ball_tree", "kd_tree", "brute"]
+}]
+
+grid_search = GridSearchCV(clf, param_grid, cv=2, scoring="accuracy", return_train_score=True, verbose=10)
+grid_search.fit(X, Y)
+
+video_clf = grid_search.best_estimator_
 
 with open('predict_heart_rate_from_video.pkl', 'wb') as fid:
-    pickle.dump(clf, fid)  
+    pickle.dump(video_clf, fid)  
 
 # try predicting
 print("DL Model Prediction Testing...")
 
+print(f"Score is : {video_clf.score(x_test,y_test)}")
 # load model
 with open('predict_heart_rate_from_video.pkl', 'rb') as fid:
-    clf_loaded = pickle.load(fid)
+    loaded_clf = pickle.load(fid)
 
 # load test data
-test_indices = range(66,71)
+test_indices = range(64,65)
 x_test = []
 for i in test_indices:
     test_brightnesses, test_fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mov")
@@ -134,11 +162,13 @@ for i in test_indices:
     x_test.append(test_brightnesses)
 
 # make prediction    
-predictions = clf_loaded.predict(x_test)
+predictions = video_clf.predict(x_test)
 
 for i in range(len(predictions)):
     print(f"Heartrate prediction for video {test_indices[i]} is: {CATEGORIES[predictions[i]]}")
-## Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
+
+
+# Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
 # Cite: https://www.kaggle.com/code/durgancegaur/a-guide-to-any-classification-problem
 df = pd.read_csv(os.getcwd()+"\\video.csv")
 df = df.drop(['ID', 'DATE'], axis=1)
@@ -205,59 +235,3 @@ plt.show()
 # Display GUI
 f.getMainSelectionPage(clf)
 
-## DL Video -> Audio Prediction Model training code here -----------------------------------------------------------------------------------
-# print("DL Model Training...")
-# training_data = []
-
-# # Process Video
-# for i in range(1,50):
-#     avg_brightnesses, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mp4")
-#     # get audio signal 
-#     audio_signal, sampling_rate = audiofile.read(AUDIO_PATH + str(i) + ".wav")
-#     # add pair to training data
-#     training_data.append([avg_brightnesses,audio_signal[0][:300000]])
-
-# X = []
-# Y = []
-
-# for video,audio in training_data:
-#     X.append(video)
-#     Y.append(audio)
-
-# X = np.array(X)
-# Y = np.array(Y)
-
-# training_size=45
-
-# x_train = X[:training_size]
-# y_train = Y[:training_size]
-# x_test = X[training_size:]
-# y_test = Y[training_size:]
-
-# model = tf.keras.models.Sequential()
-
-# model.add(tf.keras.layers.Flatten(input_shape=(250,)))
-# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-# model.add(tf.keras.layers.Dense(768, activation=tf.nn.relu))
-# model.add(tf.keras.layers.Dense(300000))
-
-# model.compile(optimizer = 'adam', loss = 'mse') 
-
-# model.fit(x_train, y_train, epochs = 5, validation_data=(x_test, y_test))
-# model.save('heart_rate.model')
-
-# # try predicting
-# print("DL Model Prediction Testing...")
-# new_model = tf.keras.models.load_model('heart_rate.model')
-# x_test, _ = f.getVideoAvgBrightnesses(VIDEO_PATH + str(48) + ".mp4")
-# predictions = new_model.predict([x_test])
-# print(predictions[0])
-
-# # Write output signal to file
-# with open("output.txt", "w") as txt_file:
-#     for line in predictions[0]:
-#         txt_file.write(str(line)+'\n')
-
-# # Play sound - WARNING may be very loud
-# sd.play(predictions[0],44100)
-# sd.wait()
