@@ -64,7 +64,7 @@ def getVideoAvgBrightnesses(videoPath):
     count = 0
     while (count < numFrames and success):
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        gray_img = cv2.resize(gray_img,(100,100))
+        gray_img = cv2.resize(gray_img,(500,500))
         avg_brightnesses.append(np.average(gray_img))
         success, img = vid_source.read() 
         count+=iterator
@@ -85,6 +85,28 @@ def getVideoLengthSeconds(videoPath):
     frame_count = int(vid_source.get(cv2.CAP_PROP_FRAME_COUNT))
     return frame_count / fps
 
+def getHrRange(hr):
+    hr = int(hr)
+    if 60 <= hr < 70:
+        return "60-70"
+    elif 70 <= hr < 80:
+        return "70-80"
+    elif 80 <= hr < 90:
+        return "80-90"
+    elif 90 <= hr < 100:
+        return "90-100"
+    elif 100 <= hr < 110:
+        return "100-110"
+    elif 110 <= hr < 120:
+        return "110-120"
+    elif 120 <= hr < 130:
+        return "120-130"
+    elif 130 <= hr < 140:
+        return "130-140"
+    elif 140 <= hr < 150:
+        return "140-150"
+    elif 150 <= hr <= 160:
+        return "150-160"
 import PySimpleGUI as sg
 
 

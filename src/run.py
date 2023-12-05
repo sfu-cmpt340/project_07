@@ -1,14 +1,12 @@
 import os
 import pandas as pd
-import audiofile
 from amazing import functions as f
-import tensorflow as tf
-import sounddevice as sd
 import numpy as np
-import cv2
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from scipy.fft import fft, ifft
+from sklearn import svm
+import pickle
 import seaborn as sn
 from sklearn.preprocessing import LabelEncoder
 from sklearn import model_selection
@@ -94,6 +92,52 @@ for i in range(1,50):
     print(f"Windowed bpms, {WINDOW_SIZE}s window size: ", window_bpms)
     print("Windowed bpms average: ", np.average(window_bpms))
 
+# DL Model training code here
+print("DL Model Training...")
+CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
+heartrates = data_table['heartrate']
+Classifications = [f.getHrRange(x) for x in heartrates]
+
+# Define training data
+X = []
+Y = []
+
+# Process Video
+for i in range(0,50):
+     print(f"Processing sample {i+1}")
+     avg_brightnesses, fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i+1) + ".mp4")
+     # Apply band pass filter to average brightnesses to make it easier to distinguish peaks
+     filtered_brightness = f.getBandpassFilter(avg_brightnesses, 0.5, 2.5, fps)
+     # Construct training data
+     X.append(filtered_brightness)
+     Y.append(CATEGORIES.index(Classifications[i]))
+
+clf = svm.SVC(gamma=0.001, C=100.)
+clf.fit(X, Y)
+
+with open('predict_heart_rate_from_video.pkl', 'wb') as fid:
+    pickle.dump(clf, fid)  
+
+# try predicting
+print("DL Model Prediction Testing...")
+
+# load model
+with open('predict_heart_rate_from_video.pkl', 'rb') as fid:
+    clf_loaded = pickle.load(fid)
+
+# load test data
+test_indices = range(66,71)
+x_test = []
+for i in test_indices:
+    test_brightnesses, test_fps = f.getVideoAvgBrightnesses(VIDEO_PATH + str(i) + ".mov")
+    test_brightnesses = f.getBandpassFilter(test_brightnesses, 0.5, 2.5, test_fps)
+    x_test.append(test_brightnesses)
+
+# make prediction    
+predictions = clf_loaded.predict(x_test)
+
+for i in range(len(predictions)):
+    print(f"Heartrate prediction for video {test_indices[i]} is: {CATEGORIES[predictions[i]]}")
 ## Predicting BPM range from Ys (Classification) -----------------------------------------------------------------------------------
 # Cite: https://www.kaggle.com/code/durgancegaur/a-guide-to-any-classification-problem
 df = pd.read_csv(os.getcwd()+"\\video.csv")
