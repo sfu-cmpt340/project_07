@@ -9,6 +9,7 @@ print("Reading data csv...")
 video_data_path = os.path.join(os.getcwd(), "video.csv")
 data_table = f.constructTable(video_data_path) # overall table from csv
 
+# training data not included in final submission
 VIDEO_PATH = os.path.join("C:\\Users\\parsa\\OneDrive\\Desktop\\training_videos\\") #EX. os.getcwd() + "\\src\\TrainingData\\Video\\"
 
 # DL Model training code here
@@ -17,6 +18,7 @@ print("DL Model Training...")
 CATEGORIES = ["Zone 1 - Resting/Very light - 60-90 bpm", "Zone 2 - Light - 90-110 bpm", "Zone 3 - Moderate - 110-130 bpm", "Zone 4 - Hard - 130-160 bpm"]
 heartrates = data_table['heartrate']
 Classifications = [f.getHrZoneIndex(x) for x in heartrates]
+
 # Define training data
 X = []
 Y = []

@@ -25,8 +25,8 @@ plt.show()
 # *Close figure to continue
 
 # Defining ranges for classification
-bins = [0, 60, 70, 80, 90, 100, 120, 140, 160]
-labels = ['Very Low (0-60)', 'Low (60 - 70)', 'Medium Low (70-80)', 'Medium (80-90)', 'Medium High (90-100)', 'High (100-120)', 'Very High (120-140)', 'Extremely High (140-160)']
+bins = [0, 60, 70, 80, 90, 100, 120, 140, 160, 200]
+labels = ['Very Low (0-60)', 'Low (60 - 70)', 'Medium Low (70-80)', 'Medium (80-90)', 'Medium High (90-100)', 'High (100-120)', 'Very High (120-140)', 'Extremely High (140-160)', 'Are You Ok (160+)']
 df['RATE CATEGORY'] = pd.cut(df['RATE'], bins=bins, labels=labels, right=False)
 # df.head(100)
 

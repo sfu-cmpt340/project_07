@@ -226,8 +226,8 @@ def getHrPredictionPage(classifier, videoClf):
 def getHrPredictionResultPage(classifier, videoClf, state, activity, bmi, age, caffeine, sleep_duration, gender, fitness):
     # STATE, ACTIVITY, BMI, AGE, CAFFEINE INTAKE, SLEEP DURATION
     data = [state, activity, bmi, age, caffeine, sleep_duration, gender, fitness]
-    labels = ['Very Low (0-60)', 'Low (60 - 70)', 'Medium Low (70-80)', 'Medium (80-90)', 'Medium High (90-100)', 'High (100-120)', 'Very High (120-140)', 'Extremely High (140-160)']
-    colour = ['darkblue', 'blue', 'lightblue', 'green', 'yellow', 'orange', 'red', 'darkred']
+    labels = ['Very Low (0-60)', 'Low (60 - 70)', 'Medium Low (70-80)', 'Medium (80-90)', 'Medium High (90-100)', 'High (100-120)', 'Very High (120-140)', 'Extremely High (140-160)', 'Are You Ok (160+)']
+    colour = ['darkblue', 'blue', 'lightblue', 'green', 'yellow', 'orange', 'red', 'darkred','purple4']
 
     prediction = classifier.predict([data])[0]
     result_layout = [
@@ -379,6 +379,5 @@ def getWithMLVideoPrediction (videoClf, path):
 
     # make prediction    
     predict = videoClf.predict(x)
-    CATEGORIES = ["60-70","70-80","80-90","90-100","100-110","110-120","120-130","130-140","140-150","150-160"]
-
+    CATEGORIES = ["Zone 1 - Resting/Very light - 60-90 bpm", "Zone 2 - Light - 90-110 bpm", "Zone 3 - Moderate - 110-130 bpm", "Zone 4 - Hard - 130-160 bpm"]
     return CATEGORIES[predict[0]]
