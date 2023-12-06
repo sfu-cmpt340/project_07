@@ -60,13 +60,22 @@ To recreate/train the models:
 
 1. Download [TrainingData.zip](https://drive.google.com/file/d/1K85C8IYuDsKvYJrUjjeVZJ5weZY23l2a/view?usp=sharing)
 2. Extract TrainingData.zip into project_07/src
-3. In the project_07 directory run "python src/amazing/train_predict_heart_rate_from_video.py"
-4. In the project_07 directory run "python src/amazing/train_predict_heart_rate_from_feature.py"
+3. In the project_07 directory run the following command:
+```bash
+python src/amazing/train_predict_heart_rate_from_video.py
+```
+4. In the project_07 directory run the following command:
+```bash
+python src/amazing/train_predict_heart_rate_from_feature.py
+```
 5. Close out any produced figures to continue the training
 
 To use the GUI:
 
-1. In the project_07 directory run "python src/run.py" to start up the GUI
+1. In the project_07 directory run the following command to start up the GUI
+```bash
+python src/run.py
+```
 2. Choose a desired prediction method
 3. Upload a sample video file from the "sample_videos_to_predict" folder or fill out the feature form
 4. Click "Predict My Current Heart Rate Range!" to get a prediction 
