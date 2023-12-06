@@ -1,5 +1,5 @@
-# Diagnosis and Translation Between Video And Audio Recordings of Heart rate: VAHR
-This study's objective is to explore the feasibility of translating heart rate information between these modalities using deep learning techniques. Additionally, it also aims to evaluate the efficiency and consistency of the translated video and audio signals in predicting heart rate.
+# Translation From Video To Audio of Heart rate And Prediction of Heart Rate: VAHR
+This study's objective is to explore the feasibility of translating heart rate information between these modalities using deep learning techniques. Additionally, it also aims to evaluate the ability to predict heart rate from both video (using both deep learning and direct analysis) and heart rate associated features.
 
 ## Important Links
 
