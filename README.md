@@ -23,26 +23,25 @@ Record a short video (1:40 - 2 minutes maximum) or gif or a simple screen record
 <a name="demo"></a>
 ## 1. Example demo
 
-A minimal example to showcase your work
-
-```python
-from amazing import amazingexample
-imgs = amazingexample.demo()
-for img in imgs:
-    view(img)
-```
+[](https://github.com/sfu-cmpt340/project_07/blob/main/minimalDemo.gif)
 
 ### What to find where
 
-Explain briefly what files are found where
+Here is where you can find important files
 
 ```bash
 repository
-├── src                          ## source code of the package itself
-├── scripts                      ## scripts, if needed
-├── docs                         ## If needed, documentation   
-├── README.md                    ## You are here
-├── requirements.yml             ## If you use conda
+├── src                                                 ## Source code of the package itself 
+    ├── amazing                                         ## Utility functions and code to train models
+        ├── functions.py                                ## Utility functions for GUI, processing data, and function to get HR from video
+        ├── train_predict_heart_rate_from_feature.py    ## Code to train model to predict heart rate from features
+        ├── train_predict_heart_rate_from_video.py      ## Code to train model to predict heart rate from video
+    ├── pretrained_models                               ## Pre-trained models for use in run.y
+    ├── sample_training_data                            ## Sample dataset for training the models
+    ├── run.py                                          ## Main run file to start up the GUI
+├── sample_videos_to_predict                            ## Sample videos that can be used for prediction in the GUI
+├── README.md                                           ## You are here
+├── requirements.txt                                    ## Python modules required
 ```
 
 <a name="installation"></a>
@@ -50,27 +49,32 @@ repository
 ## 2. Installation
 Python 3.11
 
-You might need to change some constant variables such as VIDEO_PATH to run the code successfully.
-
 ```bash
-git clone $THISREPO
-cd $THISREPO
+git clone https://github.com/sfu-cmpt340/project_07
+cd project_07
 pip install -r .\requirements.txt
 python src/run.py
 ```
 
 <a name="repro"></a>
 ## 3. Reproduction
-Demonstrate how your work can be reproduced, e.g. the results in your report.
-```bash
-mkdir tmp && cd tmp
-wget https://yourstorageisourbusiness.com/dataset.zip
-unzip dataset.zip
-conda activate amazing
-python evaluate.py --epochs=10 --data=/in/put/dir
-```
-Data can be found at ...
-Output will be saved in ...
+To recreate/train the models:
+
+1. Download [TrainingData.zip](https://drive.google.com/file/d/1K85C8IYuDsKvYJrUjjeVZJ5weZY23l2a/view?usp=sharing)
+2. Extract TrainingData.zip into project_07/src
+3. In the project_07 directory run "python src/amazing/train_predict_heart_rate_from_video.py"
+4. In the project_07 directory run "python src/amazing/train_predict_heart_rate_from_feature.py"
+5. Close out any produced figures to continue the training
+
+To use the GUI:
+
+1. In the project_07 directory run "python src/run.py" to start up the GUI
+2. Choose a desired prediction method
+3. Upload a sample video file from the "sample_videos_to_predict" folder or fill out the feature form
+4. Click "Predict My Current Heart Rate Range!" to get a prediction 
+5. The video prediction result is displayed 
+
+(Note: When using option "Predict Heart rate from a video (without DL), make sure to close the figure to see the result)
 
 <a name="guide"></a>
 ## 4. Guidance
