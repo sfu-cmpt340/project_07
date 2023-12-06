@@ -28,7 +28,7 @@ This study's objective is to explore the feasibility of translating heart rate i
 Here is where you can find important files
 
 ```bash
-repository
+project_07
 ├── src                                                 ## Source code of the package itself 
     ├── amazing                                         ## Utility functions and code to train models
         ├── functions.py                                ## Function to calculate HR from video, Utility functions for GUI +processing data
