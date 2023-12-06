@@ -7,7 +7,7 @@ This study's objective is to explore the feasibility of translating heart rate i
 |-----------|---------------|-------------------------|
 
 ## Video/demo/GIF
-Record a short video (1:40 - 2 minutes maximum) or gif or a simple screen recording or even using PowerPoint with audio or with text, showcasing your work.
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/lfkGZjKopxg/0.jpg)](https://www.youtube.com/watch?v=lfkGZjKopxg)
 
 
 ## Table of Contents
@@ -17,13 +17,11 @@ Record a short video (1:40 - 2 minutes maximum) or gif or a simple screen record
 
 3. [Reproducing this project](#repro)
 
-4. [Guidance](#guide)
-
 
 <a name="demo"></a>
 ## 1. Example demo
 
-[](https://github.com/sfu-cmpt340/project_07/blob/main/minimalDemo.gif)
+![](https://github.com/sfu-cmpt340/project_07/blob/main/minimalDemo.gif)
 
 ### What to find where
 
@@ -75,17 +73,3 @@ To use the GUI:
 5. The video prediction result is displayed 
 
 (Note: When using option "Predict Heart rate from a video (without DL), make sure to close the figure to see the result)
-
-<a name="guide"></a>
-## 4. Guidance
-
-- Use [git](https://git-scm.com/book/en/v2)
-    - Do NOT use history re-editing (rebase)
-    - Commit messages should be informative:
-        - No: 'this should fix it', 'bump' commit messages
-        - Yes: 'Resolve invalid API call in updating X'
-    - Do NOT include IDE folders (.idea), or hidden files. Update your .gitignore where needed.
-    - Do NOT use the repository to upload data
-- Use [VSCode](https://code.visualstudio.com/) or a similarly powerful IDE
-- Use [Copilot for free](https://dev.to/twizelissa/how-to-enable-github-copilot-for-free-as-student-4kal)
-- Sign up for [GitHub Education](https://education.github.com/) 
