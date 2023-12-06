@@ -10,7 +10,7 @@ import numpy as np
 
 # Cite: https://www.kaggle.com/code/durgancegaur/a-guide-to-any-classification-problem
 
-df = pd.read_csv(os.getcwd()+"\\video.csv")
+df = pd.read_csv(os.getcwd() + "\\src\\TrainingData\\video.csv")
 df = df.drop(['ID', 'DATE'], axis=1)
 df = df.set_axis(['RATE', 'STATE', 'ACTIVITY', 'BMI', 'AGE', 'CAFFEINE INTAKE', 'SLEEP DURATION', 'GENDER', 'FITNESS LEVEL'], axis=1)
 
@@ -73,5 +73,5 @@ plt.show()
 # *Close figure to continue
 
 print("Saving model...")
-with open('predict_heart_rate_from_feature.pkl', 'wb') as fid:
+with open('src/pretrained_models/predict_heart_rate_from_feature.pkl', 'wb') as fid:
     pickle.dump(clf, fid)
