@@ -1,5 +1,5 @@
-# Diagnosis and Translation Between Video And Audio Recordings of Heart rate: VAHR
-This study's objective is to explore the feasibility of translating heart rate information between these modalities using deep learning techniques. Additionally, it also aims to evaluate the efficiency and consistency of the translated video and audio signals in predicting heart rate.
+# Studying Relationships and Differences Between Different Heart Beat Signals and Data
+This study's objective is to explore the feasibility of translating heart rate information between two different modalities, namely video and audio, using deep learning techniques. Additionally, it also aims to study the ability to predict heart rate from both video (using both deep learning and direct analysis) and heart rate associated features.
 
 ## Important Links
 
@@ -7,7 +7,7 @@ This study's objective is to explore the feasibility of translating heart rate i
 |-----------|---------------|-------------------------|
 
 ## Video/demo/GIF
-Record a short video (1:40 - 2 minutes maximum) or gif or a simple screen recording or even using PowerPoint with audio or with text, showcasing your work.
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/lfkGZjKopxg/0.jpg)](https://www.youtube.com/watch?v=lfkGZjKopxg)
 
 
 ## Table of Contents
@@ -17,23 +17,21 @@ Record a short video (1:40 - 2 minutes maximum) or gif or a simple screen record
 
 3. [Reproducing this project](#repro)
 
-4. [Guidance](#guide)
-
 
 <a name="demo"></a>
 ## 1. Example demo
 
-[](https://github.com/sfu-cmpt340/project_07/blob/main/minimalDemo.gif)
+![](https://github.com/sfu-cmpt340/project_07/blob/main/minimalDemo.gif)
 
 ### What to find where
 
 Here is where you can find important files
 
 ```bash
-repository
+project_07
 ├── src                                                 ## Source code of the package itself 
     ├── amazing                                         ## Utility functions and code to train models
-        ├── functions.py                                ## Utility functions for GUI, processing data, and function to get HR from video
+        ├── functions.py                                ## Function to calculate HR from video, Utility functions for GUI +processing data
         ├── train_predict_heart_rate_from_feature.py    ## Code to train model to predict heart rate from features
         ├── train_predict_heart_rate_from_video.py      ## Code to train model to predict heart rate from video
     ├── pretrained_models                               ## Pre-trained models for use in run.y
@@ -62,30 +60,25 @@ To recreate/train the models:
 
 1. Download [TrainingData.zip](https://drive.google.com/file/d/1K85C8IYuDsKvYJrUjjeVZJ5weZY23l2a/view?usp=sharing)
 2. Extract TrainingData.zip into project_07/src
-3. In the project_07 directory run "python src/amazing/train_predict_heart_rate_from_video.py"
-4. In the project_07 directory run "python src/amazing/train_predict_heart_rate_from_feature.py"
+3. In the project_07 directory run the following command:
+```bash
+python src/amazing/train_predict_heart_rate_from_video.py
+```
+4. In the project_07 directory run the following command:
+```bash
+python src/amazing/train_predict_heart_rate_from_feature.py
+```
 5. Close out any produced figures to continue the training
 
 To use the GUI:
 
-1. In the project_07 directory run "python src/run.py" to start up the GUI
+1. In the project_07 directory run the following command to start up the GUI
+```bash
+python src/run.py
+```
 2. Choose a desired prediction method
 3. Upload a sample video file from the "sample_videos_to_predict" folder or fill out the feature form
 4. Click "Predict My Current Heart Rate Range!" to get a prediction 
 5. The video prediction result is displayed 
 
 (Note: When using option "Predict Heart rate from a video (without DL), make sure to close the figure to see the result)
-
-<a name="guide"></a>
-## 4. Guidance
-
-- Use [git](https://git-scm.com/book/en/v2)
-    - Do NOT use history re-editing (rebase)
-    - Commit messages should be informative:
-        - No: 'this should fix it', 'bump' commit messages
-        - Yes: 'Resolve invalid API call in updating X'
-    - Do NOT include IDE folders (.idea), or hidden files. Update your .gitignore where needed.
-    - Do NOT use the repository to upload data
-- Use [VSCode](https://code.visualstudio.com/) or a similarly powerful IDE
-- Use [Copilot for free](https://dev.to/twizelissa/how-to-enable-github-copilot-for-free-as-student-4kal)
-- Sign up for [GitHub Education](https://education.github.com/) 
