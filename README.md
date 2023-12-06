@@ -31,7 +31,7 @@ Here is where you can find important files
 repository
 ├── src                                                 ## Source code of the package itself 
     ├── amazing                                         ## Utility functions and code to train models
-        ├── functions.py                                ## Utility functions for GUI, processing data, and function to get HR from video
+        ├── functions.py                                ## Function to calculate HR from video, Utility functions for GUI +processing data
         ├── train_predict_heart_rate_from_feature.py    ## Code to train model to predict heart rate from features
         ├── train_predict_heart_rate_from_video.py      ## Code to train model to predict heart rate from video
     ├── pretrained_models                               ## Pre-trained models for use in run.y
